@@ -47,6 +47,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        youtube: {
+          red: "hsl(var(--youtube-red))",
+          dark: "hsl(var(--youtube-dark))",
+          gray: "hsl(var(--youtube-gray))",
+          "light-gray": "hsl(var(--youtube-light-gray))",
+          border: "hsl(var(--youtube-border))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
