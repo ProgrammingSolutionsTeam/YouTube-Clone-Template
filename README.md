@@ -1,6 +1,6 @@
 # 🎬 YouTube Clone Template  
 
-📌 **Demo URL**: [https://vidio-canvas-hub.lovable.app](https://vidio-canvas-hub.lovable.app)  
+📌 **Demo URL**: [https://youtube-clone-template.lovable.app/](https://youtube-clone-template.lovable.app/)  
 
 This project is a **YouTube clone template** built with **React, TypeScript, Vite, TailwindCSS, and shadcn/ui (Radix)**.  
 It mimics YouTube’s layout and core interactions while allowing customization and local development.  
