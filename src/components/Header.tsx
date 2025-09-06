@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Menu, Search, Upload, User } from "lucide-react";
+import { UserMenu } from "@/components/UserMenu";
+import { Bell, Menu, Search, Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import youtubeLogo from "@/assets/youtube-logo.png";
 
 interface HeaderProps {
@@ -11,11 +12,16 @@ interface HeaderProps {
 
 export function Header({ onMenuToggle }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  const handleLogoClick = () => {
+    navigate('/');
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-youtube-border h-14 flex items-center px-4 shadow-[var(--shadow-header)]">
       {/* Left Section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 w-64">
         <Button
           variant="ghost"
           size="icon"
@@ -24,15 +30,18 @@ export function Header({ onMenuToggle }: HeaderProps) {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <div className="flex items-center gap-1">
+        <button 
+          onClick={handleLogoClick}
+          className="flex items-center gap-1 hover:bg-secondary rounded-lg p-2 transition-colors"
+        >
           <img src={youtubeLogo} alt="YouTube" className="h-6 w-8 object-contain" />
           <span className="font-bold text-lg hidden sm:block">YouTube</span>
-        </div>
+        </button>
       </div>
 
-      {/* Center Section - Search */}
-      <div className="flex-1 max-w-2xl mx-4 flex items-center">
-        <div className="flex w-full">
+      {/* Center Section - Search (Centered) */}
+      <div className="flex-1 flex justify-center px-4">
+        <div className="flex w-full max-w-2xl">
           <Input
             placeholder="Search"
             value={searchQuery}
@@ -49,19 +58,14 @@ export function Header({ onMenuToggle }: HeaderProps) {
       </div>
 
       {/* Right Section */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-64 justify-end">
         <Button variant="ghost" size="icon" className="hidden sm:flex hover:bg-secondary">
           <Upload className="h-5 w-5" />
         </Button>
         <Button variant="ghost" size="icon" className="hover:bg-secondary">
           <Bell className="h-5 w-5" />
         </Button>
-        <Avatar className="h-8 w-8">
-          <AvatarImage src="/placeholder.svg" />
-          <AvatarFallback>
-            <User className="h-4 w-4" />
-          </AvatarFallback>
-        </Avatar>
+        <UserMenu />
       </div>
     </header>
   );

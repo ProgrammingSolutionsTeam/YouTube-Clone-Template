@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -19,15 +20,15 @@ interface SidebarProps {
 }
 
 const mainMenuItems = [
-  { icon: Home, label: "Home", active: true },
-  { icon: PlaySquare, label: "Subscriptions" },
-  { icon: ListVideo, label: "Library" },
-  { icon: Clock, label: "History" },
-  { icon: ThumbsUp, label: "Liked videos" },
+  { icon: Home, label: "Home", path: "/" },
+  { icon: PlaySquare, label: "Subscriptions", path: "/subscriptions" },
+  { icon: ListVideo, label: "Library", path: "/library" },
+  { icon: Clock, label: "History", path: "/history" },
+  { icon: ThumbsUp, label: "Liked videos", path: "/liked" },
 ];
 
 const exploreItems = [
-  { icon: TrendingUp, label: "Trending" },
+  { icon: TrendingUp, label: "Trending", path: "/trending" },
 ];
 
 const subscriptions = [
@@ -38,6 +39,8 @@ const subscriptions = [
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
   return (
     <>
       {/* Mobile Overlay */}
@@ -58,19 +61,26 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <ScrollArea className="h-full">
           <div className="p-3 space-y-1">
             {/* Main Menu */}
-            {mainMenuItems.map((item) => (
-              <Button
-                key={item.label}
-                variant={item.active ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full justify-start gap-6 h-10",
-                  item.active && "bg-youtube-light-gray hover:bg-youtube-light-gray"
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.label}
-              </Button>
-            ))}
+            {mainMenuItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Button
+                  key={item.label}
+                  variant={isActive ? "secondary" : "ghost"}
+                  className={cn(
+                    "w-full justify-start gap-6 h-10",
+                    isActive && "bg-youtube-light-gray hover:bg-youtube-light-gray"
+                  )}
+                  onClick={() => {
+                    navigate(item.path);
+                    onClose();
+                  }}
+                >
+                  <item.icon className="h-5 w-5" />
+                  {item.label}
+                </Button>
+              );
+            })}
 
             <Separator className="my-3" />
 
@@ -82,6 +92,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   key={item.label}
                   variant="ghost"
                   className="w-full justify-start gap-6 h-10"
+                  onClick={() => {
+                    navigate(item.path);
+                    onClose();
+                  }}
                 >
                   <item.icon className="h-5 w-5" />
                   {item.label}
@@ -119,6 +133,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Button
               variant="ghost"
               className="w-full justify-start gap-6 h-10"
+              onClick={() => {
+                navigate('/settings');
+                onClose();
+              }}
             >
               <Settings className="h-5 w-5" />
               Settings
