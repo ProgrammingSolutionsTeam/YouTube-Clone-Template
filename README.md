@@ -1,54 +1,60 @@
-## Project info
+# 🎬 YouTube Clone Template  
 
-**URL**: https://vidio-canvas-hub.lovable.app
+📌 **Demo URL**: [https://vidio-canvas-hub.lovable.app](https://vidio-canvas-hub.lovable.app)  
 
-## How can I edit this code?
+This project is a **YouTube clone template** built with **React, TypeScript, Vite, TailwindCSS, and shadcn/ui (Radix)**.  
+It mimics YouTube’s layout and core interactions while allowing customization and local development.  
 
-There are several ways of editing your application.
+---
 
+## 🚀 Features
+- YouTube-style UI with responsive design.  
+- Centered search bar in the header.  
+- YouTube logo redirects to the homepage.  
+- User profile image with dropdown menu:  
+  - Settings  
+  - Channels  
+  - Dark/Light mode toggle  
+- **Settings page** to select a local folder path for videos:  
+  - Each sub-folder = a channel.  
+  - Each video file = a video.  
+- Persistent storage for the chosen folder path.  
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠️ Tech Stack
+- [Vite](https://vitejs.dev/)  
+- [React](https://react.dev/)  
+- [TypeScript](https://www.typescriptlang.org/)  
+- [TailwindCSS](https://tailwindcss.com/)  
+- [shadcn/ui (Radix)](https://ui.shadcn.com/)  
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## 📥 Installation & Setup  
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+### 🔹 Requirements
+- [Node.js](https://nodejs.org/) (v18+ recommended)  
+- [npm](https://www.npmjs.com/) (comes with Node.js)  
+- Optional: [nvm](https://github.com/nvm-sh/nvm#installing-and-updating) to manage Node versions  
+
+### 🔹 Steps
+```bash
+# Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Navigate into the project folder
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
+
+# Open your browser and visit
+http://localhost:5173
 ```
+---
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+👀 **Project Views:** ![Project Views](https://komarev.com/ghpvc/?username=YOUR_GITHUB_USERNAME&color=blue)
