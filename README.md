@@ -41,19 +41,19 @@ It mimics YouTube’s layout and core interactions while allowing customization 
 ### 🔹 Steps
 ```bash
 # Clone the repository
-git clone <YOUR_GIT_URL>
+git clone https://github.com/ProgrammingSolutionsTeam/YouTube-Clone-Template.git
 
 # Navigate into the project folder
-cd <YOUR_PROJECT_NAME>
+cd YouTube-Clone-Template
 
 # Install dependencies
-npm install
+npm i
 
 # Start the development server
 npm run dev
 
 # Open your browser and visit
-http://localhost:5173
+http://localhost:8080
 ```
 ---
 
