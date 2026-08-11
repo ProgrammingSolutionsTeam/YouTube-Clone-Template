@@ -18,9 +18,9 @@ import { log } from "../core/logger";
 import type { MediaItem, SubtitleRecord } from "../core/types";
 
 export class MediaAccessError extends Error {
-  constructor(public code: "not_found" | "permission" | "unreadable" | "unavailable", cause?: unknown) {
+  constructor(public code: "not_found" | "permission" | "unreadable" | "unavailable", public detail?: unknown) {
     super(code);
-    this.cause = cause;
+    this.name = "MediaAccessError";
   }
 }
 
