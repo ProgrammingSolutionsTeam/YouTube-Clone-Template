@@ -14,16 +14,329 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          category: string
+          created_at: string
+          details: Json | null
+          id: string
+          level: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          category?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          level?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          category?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          level?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      library_roots: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string | null
+          name: string
+          platform_hint: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          name: string
+          platform_hint?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          name?: string
+          platform_hint?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      playlist_items: {
+        Row: {
+          channel_name: string | null
+          created_at: string
+          id: string
+          playlist_id: string
+          position: number
+          title: string | null
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          channel_name?: string | null
+          created_at?: string
+          id?: string
+          playlist_id: string
+          position?: number
+          title?: string | null
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          channel_name?: string | null
+          created_at?: string
+          id?: string
+          playlist_id?: string
+          position?: number
+          title?: string | null
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlist_items_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          disabled: boolean
+          display_name: string | null
+          id: string
+          language: string
+          last_login: string | null
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          disabled?: boolean
+          display_name?: string | null
+          id: string
+          language?: string
+          last_login?: string | null
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          disabled?: boolean
+          display_name?: string | null
+          id?: string
+          language?: string
+          last_login?: string | null
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          autoplay_next: boolean
+          muted: boolean
+          playback_speed: number
+          preferred_audio_language: string | null
+          preferred_subtitle_language: string | null
+          subtitle_background: string
+          subtitle_background_opacity: number
+          subtitle_color: string
+          subtitle_delay: number
+          subtitle_edge_style: string
+          subtitle_font_family: string
+          subtitle_font_size: number
+          subtitle_position: number
+          updated_at: string
+          user_id: string
+          volume: number
+        }
+        Insert: {
+          autoplay_next?: boolean
+          muted?: boolean
+          playback_speed?: number
+          preferred_audio_language?: string | null
+          preferred_subtitle_language?: string | null
+          subtitle_background?: string
+          subtitle_background_opacity?: number
+          subtitle_color?: string
+          subtitle_delay?: number
+          subtitle_edge_style?: string
+          subtitle_font_family?: string
+          subtitle_font_size?: number
+          subtitle_position?: number
+          updated_at?: string
+          user_id: string
+          volume?: number
+        }
+        Update: {
+          autoplay_next?: boolean
+          muted?: boolean
+          playback_speed?: number
+          preferred_audio_language?: string | null
+          preferred_subtitle_language?: string | null
+          subtitle_background?: string
+          subtitle_background_opacity?: number
+          subtitle_color?: string
+          subtitle_delay?: number
+          subtitle_edge_style?: string
+          subtitle_font_family?: string
+          subtitle_font_size?: number
+          subtitle_position?: number
+          updated_at?: string
+          user_id?: string
+          volume?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      watch_history: {
+        Row: {
+          channel_name: string | null
+          completed: boolean
+          duration: number | null
+          id: string
+          last_position: number
+          progress: number
+          title: string | null
+          user_id: string
+          video_id: string
+          watched_at: string
+        }
+        Insert: {
+          channel_name?: string | null
+          completed?: boolean
+          duration?: number | null
+          id?: string
+          last_position?: number
+          progress?: number
+          title?: string | null
+          user_id: string
+          video_id: string
+          watched_at?: string
+        }
+        Update: {
+          channel_name?: string | null
+          completed?: boolean
+          duration?: number | null
+          id?: string
+          last_position?: number
+          progress?: number
+          title?: string | null
+          user_id?: string
+          video_id?: string
+          watched_at?: string
+        }
+        Relationships: []
+      }
+      watch_later: {
+        Row: {
+          channel_name: string | null
+          created_at: string
+          id: string
+          title: string | null
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          channel_name?: string | null
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          channel_name?: string | null
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +463,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
