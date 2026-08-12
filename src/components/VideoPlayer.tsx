@@ -85,7 +85,7 @@ export function VideoPlayer({ videoId }: VideoPlayerProps) {
                 className="rounded-full"
               >
                 <ThumbsUp className={cn("me-2 h-4 w-4", reaction === "like" && "text-youtube-red")} />
-                {video.likes.toLocaleString("ar-EG")}
+                {video.likes.toLocaleString("en-US")}
               </Button>
               <Separator orientation="vertical" className="h-5" />
               <Button
@@ -112,7 +112,7 @@ export function VideoPlayer({ videoId }: VideoPlayerProps) {
         {/* الوصف */}
         <div className="rounded-xl bg-secondary/70 p-3 sm:p-4">
           <p className="text-xs font-semibold sm:text-sm">
-            {video.views.toLocaleString("ar-EG")} مشاهدة • {video.publishedAt}
+            {video.views.toLocaleString("en-US")} مشاهدة • {video.publishedAt}
           </p>
           <p
             className={cn(
