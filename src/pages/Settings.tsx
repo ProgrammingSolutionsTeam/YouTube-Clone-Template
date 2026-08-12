@@ -1,178 +1,152 @@
-import { useState, useEffect } from "react";
-import { Header } from "@/components/Header";
-import { Sidebar } from "@/components/Sidebar";
+import { useEffect, useState } from "react";
+import { AppLayout, PageHeading } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { FolderOpen, Save, AlertCircle } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FolderOpen, Save, AlertCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+const STORAGE_KEY = "library-root-paths";
+
 const Settings = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [folderPath, setFolderPath] = useState("");
+  const [path, setPath] = useState("");
+  const [roots, setRoots] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load saved folder path from localStorage
-    const savedPath = localStorage.getItem("youtube-folder-path");
-    if (savedPath) {
-      setFolderPath(savedPath);
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        setRoots(JSON.parse(saved));
+      } catch {
+        setRoots([]);
+      }
     }
   }, []);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+  const persist = (next: string[]) => {
+    setRoots(next);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   };
 
-  const closeSidebar = () => {
-    setSidebarOpen(false);
+  const addRoot = () => {
+    const value = path.trim();
+    if (!value) {
+      toast({ title: "خطأ", description: "أدخل مسارًا صحيحًا.", variant: "destructive" });
+      return;
+    }
+    if (roots.includes(value)) {
+      toast({ title: "موجود مسبقًا", description: "هذا المسار مضاف بالفعل." });
+      return;
+    }
+    persist([...roots, value]);
+    setPath("");
+    toast({ title: "تم الحفظ", description: "أُضيف المسار إلى المكتبة." });
   };
 
-  const handleSave = () => {
-    if (folderPath.trim()) {
-      localStorage.setItem("youtube-folder-path", folderPath.trim());
+  const pickFolder = async () => {
+    const picker = (window as unknown as {
+      showDirectoryPicker?: () => Promise<{ name: string }>;
+    }).showDirectoryPicker;
+
+    if (!picker) {
       toast({
-        title: "Settings saved",
-        description: "Folder path has been saved successfully.",
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Please enter a valid folder path.",
+        title: "غير مدعوم",
+        description: "متصفحك لا يدعم اختيار المجلدات، اكتب المسار يدويًا.",
         variant: "destructive",
       });
+      return;
+    }
+    try {
+      const dir = await picker();
+      setPath(dir.name);
+    } catch {
+      /* أُلغي الاختيار */
     }
   };
 
-  const handleBrowseFolder = () => {
-    // In a real application, this would open a native folder picker
-    // For now, we'll just show a message
-    toast({
-      title: "Folder Browser",
-      description: "In a real app, this would open a native folder picker.",
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuToggle={toggleSidebar} />
-      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
-      
-      {/* Main Content */}
-      <main className="pt-14 lg:pl-64 transition-all duration-300">
-        <div className="container max-w-4xl mx-auto p-6">
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-              <p className="text-muted-foreground">
-                Manage your YouTube application preferences
+    <AppLayout>
+      <div className="mx-auto max-w-3xl">
+        <PageHeading
+          title="الإعدادات"
+          description="حدّد مسارات المكتبة المحلية وخصّص تجربة المشاهدة"
+        />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <FolderOpen className="h-5 w-5" />
+              مسارات المكتبة
+            </CardTitle>
+            <CardDescription>
+              كل مجلد فرعي داخل المسار يتحول تلقائيًا إلى قناة، والمجلدات الداخلية إلى قوائم تشغيل.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="root-path">المسار</Label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  id="root-path"
+                  placeholder="مثال: F:\\#Videos"
+                  value={path}
+                  onChange={(e) => setPath(e.target.value)}
+                  className="flex-1"
+                />
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={pickFolder} className="flex-1 sm:flex-none">
+                    استعراض
+                  </Button>
+                  <Button
+                    onClick={addRoot}
+                    className="flex-1 bg-youtube-red hover:bg-youtube-red/90 sm:flex-none"
+                  >
+                    <Save className="me-2 h-4 w-4" />
+                    حفظ
+                  </Button>
+                </div>
+              </div>
+              <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                المسارات الحقيقية لا تُعرض للمستخدمين، ويتم استخدام معرفات آمنة بدلًا منها.
               </p>
             </div>
 
-            <Separator />
-
-            {/* Video Folder Configuration */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FolderOpen className="h-5 w-5" />
-                  Video Folder Configuration
-                </CardTitle>
-                <CardDescription>
-                  Set the folder path where your videos are stored. Each subfolder will represent a channel.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="folder-path">Folder Path</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="folder-path"
-                      placeholder="e.g., /Users/username/Videos/YouTube"
-                      value={folderPath}
-                      onChange={(e) => setFolderPath(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button 
-                      variant="outline" 
-                      onClick={handleBrowseFolder}
-                      className="shrink-0"
-                    >
-                      Browse
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <AlertCircle className="h-4 w-4" />
-                    Each subfolder inside this path will be treated as a separate channel
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={handleSave} className="bg-youtube-red hover:bg-youtube-red/90">
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Settings
-                  </Button>
-                </div>
-
-                {folderPath && (
-                  <div className="mt-4 p-4 bg-muted rounded-lg">
-                    <h4 className="font-medium mb-2">Current Configuration:</h4>
-                    <p className="text-sm text-muted-foreground">
-                      <strong>Folder Path:</strong> {folderPath}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      <strong>Expected Structure:</strong>
-                    </p>
-                    <pre className="text-xs mt-2 text-muted-foreground">
-{`${folderPath}/
-├── Channel1/
-│   ├── video1.mp4
-│   └── video2.mp4
-├── Channel2/
-│   ├── video3.mp4
-│   └── video4.mp4
-└── Channel3/
-    └── video5.mp4`}
-                    </pre>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Additional Settings Sections */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Playback Settings</CardTitle>
-                <CardDescription>
-                  Configure video playback preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Additional playback settings will be available in future updates.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Privacy Settings</CardTitle>
-                <CardDescription>
-                  Manage your privacy preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Privacy controls will be available in future updates.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </main>
-    </div>
+            {roots.length > 0 && (
+              <div className="space-y-2">
+                <Label>المسارات المضافة</Label>
+                <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+                  {roots.map((r) => (
+                    <li key={r} className="flex items-center gap-2 bg-secondary/40 px-3 py-2">
+                      <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="min-w-0 flex-1 truncate text-sm" dir="ltr">
+                        {r}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="حذف"
+                        onClick={() => persist(roots.filter((x) => x !== r))}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </AppLayout>
   );
 };
 

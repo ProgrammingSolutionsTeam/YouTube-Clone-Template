@@ -8,82 +8,82 @@ import thumb4 from "@/assets/thumb4.jpg";
 const dummyVideos = [
   {
     id: "1",
-    title: "Learn React in 2024 - Complete Beginner's Guide",
+    title: "دورة تعلّم React من الصفر حتى الاحتراف",
     thumbnail: thumb1,
-    channelName: "Tech Academy",
+    channelName: "دروس برمجة",
     channelAvatar: "/placeholder.svg",
     views: 125000,
-    publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    publishedAt: new Date(Date.now() - 2 * 86400000),
     duration: "15:30",
   },
   {
     id: "2",
-    title: "Amazing Music Production Techniques - Studio Secrets",
+    title: "أسرار الإنتاج الموسيقي في الاستوديو",
     thumbnail: thumb2,
-    channelName: "Music Pro",
+    channelName: "موسيقى",
     channelAvatar: "/placeholder.svg",
     views: 89000,
-    publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    publishedAt: new Date(Date.now() - 5 * 86400000),
     duration: "22:15",
   },
   {
     id: "3",
-    title: "Epic Gaming Setup Tour 2024 - RGB Everything!",
+    title: "جولة في أفضل غرف الألعاب لعام 2026",
     thumbnail: thumb3,
-    channelName: "Gaming World",
+    channelName: "ألعاب",
     channelAvatar: "/placeholder.svg",
     views: 256000,
-    publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    publishedAt: new Date(Date.now() - 86400000),
     duration: "18:45",
   },
   {
     id: "4",
-    title: "Master Chef Techniques - Cook Like a Professional",
+    title: "تقنيات الطهي الاحترافية خطوة بخطوة",
     thumbnail: thumb4,
-    channelName: "Culinary Arts",
+    channelName: "فنون الطهي",
     channelAvatar: "/placeholder.svg",
     views: 78000,
-    publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    publishedAt: new Date(Date.now() - 3 * 86400000),
     duration: "25:10",
   },
   {
     id: "5",
-    title: "Advanced JavaScript Concepts Every Developer Should Know",
+    title: "مفاهيم JavaScript المتقدمة التي يجب أن تعرفها",
     thumbnail: thumb1,
-    channelName: "Code Masters",
+    channelName: "أكواد",
     channelAvatar: "/placeholder.svg",
     views: 189000,
-    publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
+    publishedAt: new Date(Date.now() - 7 * 86400000),
     duration: "31:20",
   },
   {
     id: "6",
-    title: "Beat Making Tutorial - Hip Hop Production 2024",
+    title: "صناعة الإيقاعات: دليل الهيب هوب الكامل",
     thumbnail: thumb2,
-    channelName: "Beat Factory",
+    channelName: "مصنع الإيقاع",
     channelAvatar: "/placeholder.svg",
     views: 145000,
-    publishedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+    publishedAt: new Date(Date.now() - 4 * 86400000),
     duration: "19:55",
   },
   {
     id: "7",
-    title: "Top 10 Gaming Moments That Broke the Internet",
+    title: "أفضل 10 لحظات في عالم الألعاب",
     thumbnail: thumb3,
-    channelName: "Epic Gaming",
+    channelName: "ألعاب ملحمية",
     channelAvatar: "/placeholder.svg",
     views: 892000,
-    publishedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+    publishedAt: new Date(Date.now() - 6 * 86400000),
     duration: "12:30",
   },
   {
     id: "8",
-    title: "Gourmet Cooking at Home - Restaurant Quality Meals",
+    title: "وجبات بجودة المطاعم في منزلك",
     thumbnail: thumb4,
-    channelName: "Home Chef",
+    channelName: "شيف المنزل",
     channelAvatar: "/placeholder.svg",
     views: 67000,
-    publishedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 1 week ago
+    publishedAt: new Date(Date.now() - 8 * 86400000),
     duration: "28:45",
   },
 ];
@@ -91,17 +91,13 @@ const dummyVideos = [
 export function VideoGrid() {
   const navigate = useNavigate();
 
-  const handleVideoClick = (videoId: string) => {
-    navigate(`/watch/${videoId}`);
-  };
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 p-4">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-6 xs:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
       {dummyVideos.map((video) => (
         <VideoCard
           key={video.id}
           {...video}
-          onClick={() => handleVideoClick(video.id)}
+          onClick={() => navigate(`/watch/${video.id}`)}
         />
       ))}
     </div>
