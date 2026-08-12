@@ -46,7 +46,7 @@ export function UserMenu() {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-secondary">
           <Avatar className="h-8 w-8">
             <AvatarImage src="/placeholder.svg" alt="User avatar" />
-            <AvatarFallback className="bg-youtube-red text-white">
+            <AvatarFallback className="bg-youtube-red text-primary-foreground">
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
@@ -58,12 +58,12 @@ export function UserMenu() {
         forceMount
       >
         <DropdownMenuItem onClick={handleSettingsClick} className="cursor-pointer">
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
+          <Settings className="me-2 h-4 w-4" />
+          <span>الإعدادات</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleChannelsClick} className="cursor-pointer">
-          <Tv className="mr-2 h-4 w-4" />
-          <span>Your channels</span>
+          <Tv className="me-2 h-4 w-4" />
+          <span>قنواتي</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
@@ -72,13 +72,13 @@ export function UserMenu() {
         >
           {theme === "dark" ? (
             <>
-              <Sun className="mr-2 h-4 w-4" />
-              <span>Light mode</span>
+              <Sun className="me-2 h-4 w-4" />
+              <span>الوضع النهاري</span>
             </>
           ) : (
             <>
-              <Moon className="mr-2 h-4 w-4" />
-              <span>Dark mode</span>
+              <Moon className="me-2 h-4 w-4" />
+              <span>الوضع الليلي</span>
             </>
           )}
         </DropdownMenuItem>
@@ -86,8 +86,8 @@ export function UserMenu() {
           onClick={() => setTheme("system")}
           className="cursor-pointer"
         >
-          <Monitor className="mr-2 h-4 w-4" />
-          <span>System theme</span>
+          <Monitor className="me-2 h-4 w-4" />
+          <span>حسب النظام</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
