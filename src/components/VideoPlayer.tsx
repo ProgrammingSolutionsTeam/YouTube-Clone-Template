@@ -1,17 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import {
   ThumbsUp,
   ThumbsDown,
-  Share,
+  Share2,
   Download,
+  Clock,
   MoreHorizontal,
-  Bell,
 } from "lucide-react";
 import { useState } from "react";
-import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface VideoPlayerProps {
   videoId: string;
@@ -19,174 +18,117 @@ interface VideoPlayerProps {
 
 export function VideoPlayer({ videoId }: VideoPlayerProps) {
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
-  const [isDisliked, setIsDisliked] = useState(false);
+  const [reaction, setReaction] = useState<"like" | "dislike" | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
-  // Mock video data based on videoId
-  const videoData = {
-    title: "Learn React in 2024 - Complete Beginner's Guide",
+  const video = {
+    title: "دورة تعلّم React من الصفر حتى الاحتراف",
     views: 125000,
-    publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    publishedAt: "قبل يومين",
     likes: 5200,
-    dislikes: 89,
-    channelName: "Tech Academy",
+    channelName: "دروس برمجة",
     channelAvatar: "/placeholder.svg",
-    subscribers: "1.2M",
-    description: `In this comprehensive React tutorial, you'll learn everything you need to know to get started with React in 2024. 
-
-We'll cover:
-- Setting up your development environment
-- Understanding components and JSX
-- State management with hooks
-- Props and component communication
-- Event handling
-- Best practices for React development
-
-Perfect for beginners who want to learn modern React development from scratch!
-
-🔗 Links:
-- Source code: github.com/example
-- React documentation: reactjs.org
-
-⏰ Timestamps:
-00:00 Introduction
-02:30 Setting up React
-05:15 Your first component
-10:45 Understanding JSX
-15:30 Working with state`,
+    subscribers: "1.2 مليون",
+    description:
+      "في هذه الدورة الشاملة ستتعلم كل ما تحتاجه للبدء مع React: تهيئة بيئة العمل، المكونات و JSX، إدارة الحالة عبر الـ Hooks، تمرير الخصائص، التعامل مع الأحداث، وأفضل الممارسات في التطوير الحديث.",
   };
 
-  const formatViews = (count: number): string => {
-    if (count >= 1000000) {
-      return `${(count / 1000000).toFixed(1)}M`;
-    } else if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}K`;
-    }
-    return count.toString();
-  };
-
-  const timeAgo = formatDistanceToNow(videoData.publishedAt, { addSuffix: true });
-
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    if (isDisliked) setIsDisliked(false);
-  };
-
-  const handleDislike = () => {
-    setIsDisliked(!isDisliked);
-    if (isLiked) setIsLiked(false);
-  };
+  const actions = [
+    { icon: Share2, label: "مشاركة" },
+    { icon: Download, label: "تنزيل" },
+    { icon: Clock, label: "لاحقًا" },
+  ];
 
   return (
     <div className="space-y-4">
-      {/* Video Player Placeholder */}
-      <div className="relative aspect-video bg-black rounded-lg overflow-hidden shadow-[var(--shadow-card)]">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-white text-xl font-medium">Video Player Placeholder</div>
-        </div>
-        <div className="absolute top-4 left-4">
-          <Badge variant="secondary" className="bg-black bg-opacity-50 text-white">
-            HD
-          </Badge>
-        </div>
+      {/* المشغل */}
+      <div className="relative aspect-video w-full overflow-hidden bg-youtube-dark sm:rounded-xl">
+        <video
+          className="h-full w-full"
+          controls
+          playsInline
+          poster="/placeholder.svg"
+          key={videoId}
+        />
       </div>
 
-      {/* Video Title */}
-      <h1 className="text-xl font-semibold leading-6">{videoData.title}</h1>
+      <div className="space-y-4 px-3 sm:px-0">
+        <h1 className="text-base font-bold leading-6 sm:text-xl">{video.title}</h1>
 
-      {/* Video Stats and Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-youtube-gray text-sm">
-          <span>{formatViews(videoData.views)} views</span>
-          <span>•</span>
-          <span>{timeAgo}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Like/Dislike */}
-          <div className="flex items-center bg-youtube-light-gray rounded-full">
+        {/* القناة + الإجراءات */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={video.channelAvatar} />
+              <AvatarFallback>{video.channelName.slice(0, 2)}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{video.channelName}</p>
+              <p className="text-xs text-muted-foreground">{video.subscribers} متابع</p>
+            </div>
             <Button
-              variant="ghost"
               size="sm"
-              className={`rounded-r-none hover:bg-secondary ${
-                isLiked ? "text-youtube-red" : ""
-              }`}
-              onClick={handleLike}
+              variant={isSubscribed ? "secondary" : "default"}
+              onClick={() => setIsSubscribed((v) => !v)}
+              className={cn("rounded-full", !isSubscribed && "bg-youtube-red hover:bg-youtube-red/90")}
             >
-              <ThumbsUp className="h-4 w-4 mr-2" />
-              {formatViews(videoData.likes + (isLiked ? 1 : 0))}
-            </Button>
-            <Separator orientation="vertical" className="h-6" />
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`rounded-l-none hover:bg-secondary ${
-                isDisliked ? "text-youtube-red" : ""
-              }`}
-              onClick={handleDislike}
-            >
-              <ThumbsDown className="h-4 w-4" />
+              {isSubscribed ? "مُتابع" : "متابعة"}
             </Button>
           </div>
 
-          {/* Share */}
-          <Button variant="outline" size="sm" className="rounded-full">
-            <Share className="h-4 w-4 mr-2" />
-            Share
-          </Button>
-
-          {/* Download */}
-          <Button variant="outline" size="sm" className="rounded-full">
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
-
-          {/* More */}
-          <Button variant="outline" size="icon" className="rounded-full">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Channel Info */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={videoData.channelAvatar} />
-            <AvatarFallback>
-              {videoData.channelName.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="font-medium">{videoData.channelName}</h3>
-            <p className="text-sm text-youtube-gray">
-              {videoData.subscribers} subscribers
-            </p>
+          <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] lg:mx-0 lg:px-0 [&::-webkit-scrollbar]:hidden">
+            <div className="flex shrink-0 items-center rounded-full bg-secondary">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setReaction(reaction === "like" ? null : "like")}
+                className="rounded-full"
+              >
+                <ThumbsUp className={cn("me-2 h-4 w-4", reaction === "like" && "text-youtube-red")} />
+                {video.likes.toLocaleString("ar-EG")}
+              </Button>
+              <Separator orientation="vertical" className="h-5" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setReaction(reaction === "dislike" ? null : "dislike")}
+                className="rounded-full"
+              >
+                <ThumbsDown className={cn("h-4 w-4", reaction === "dislike" && "text-youtube-red")} />
+              </Button>
+            </div>
+            {actions.map((a) => (
+              <Button key={a.label} variant="secondary" size="sm" className="shrink-0 rounded-full">
+                <a.icon className="me-2 h-4 w-4" />
+                {a.label}
+              </Button>
+            ))}
+            <Button variant="secondary" size="icon" className="h-9 w-9 shrink-0 rounded-full" aria-label="المزيد">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant={isSubscribed ? "secondary" : "default"}
-            size="sm"
-            className={`rounded-full ${
-              isSubscribed
-                ? "bg-youtube-light-gray hover:bg-youtube-light-gray text-foreground"
-                : "bg-youtube-red hover:bg-youtube-red text-white"
-            }`}
-            onClick={() => setIsSubscribed(!isSubscribed)}
+        {/* الوصف */}
+        <div className="rounded-xl bg-secondary/70 p-3 sm:p-4">
+          <p className="text-xs font-semibold sm:text-sm">
+            {video.views.toLocaleString("ar-EG")} مشاهدة • {video.publishedAt}
+          </p>
+          <p
+            className={cn(
+              "mt-2 whitespace-pre-line text-sm leading-6 text-foreground/90",
+              !expanded && "line-clamp-2"
+            )}
           >
-            <Bell className="h-4 w-4 mr-2" />
-            {isSubscribed ? "Subscribed" : "Subscribe"}
-          </Button>
+            {video.description}
+          </p>
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="mt-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+          >
+            {expanded ? "عرض أقل" : "عرض المزيد"}
+          </button>
         </div>
-      </div>
-
-      {/* Description */}
-      <div className="bg-youtube-light-gray rounded-lg p-4">
-        <div className="text-sm whitespace-pre-line">{videoData.description}</div>
       </div>
     </div>
   );
