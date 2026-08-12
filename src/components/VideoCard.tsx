@@ -16,8 +16,9 @@ interface VideoCardProps {
 }
 
 const formatViews = (count: number): string => {
-  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)} مليون`;
-  if (count >= 1000) return `${(count / 1000).toFixed(1)} ألف`;
+  const trim = (n: number) => String(Number(n.toFixed(1)));
+  if (count >= 1_000_000) return `${trim(count / 1_000_000)} مليون`;
+  if (count >= 1000) return `${trim(count / 1000)} ألف`;
   return String(count);
 };
 
