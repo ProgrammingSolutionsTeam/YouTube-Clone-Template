@@ -31,7 +31,7 @@ export function AppLayout({ children, bare = false }: AppLayoutProps) {
       <main
         className={cn(
           "pt-14 pb-16 transition-[padding] duration-300 md:pb-0",
-          collapsed ? "lg:pr-[72px]" : "lg:pr-60"
+          collapsed ? "lg:ps-[72px]" : "lg:ps-60"
         )}
       >
         {bare ? (

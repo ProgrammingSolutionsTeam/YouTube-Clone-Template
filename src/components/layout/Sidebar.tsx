@@ -151,8 +151,8 @@ export function Sidebar({ isOpen, collapsed, onClose }: SidebarProps) {
       {/* سطح المكتب */}
       <aside
         className={cn(
-          "fixed top-14 bottom-0 hidden border-e border-youtube-border bg-background transition-[width] duration-300 lg:block",
-          "end-0",
+          "fixed top-14 bottom-0 hidden border-s border-youtube-border bg-background transition-[width] duration-300 lg:block",
+          "start-0",
           collapsed ? "w-[72px]" : "w-60"
         )}
       >
