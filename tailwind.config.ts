@@ -13,6 +13,12 @@ export default {
       },
     },
     extend: {
+      screens: {
+        xs: "420px",
+      },
+      fontFamily: {
+        sans: ["Cairo", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

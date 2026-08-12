@@ -8,87 +8,72 @@ import thumb4 from "@/assets/thumb4.jpg";
 const suggestedVideos = [
   {
     id: "2",
-    title: "Amazing Music Production Techniques",
+    title: "أسرار الإنتاج الموسيقي في الاستوديو",
     thumbnail: thumb2,
-    channelName: "Music Pro",
+    channelName: "موسيقى",
     channelAvatar: "/placeholder.svg",
     views: 89000,
-    publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    publishedAt: new Date(Date.now() - 5 * 86400000),
     duration: "22:15",
   },
   {
     id: "3",
-    title: "Epic Gaming Setup Tour 2024",
+    title: "جولة في أفضل غرف الألعاب 2026",
     thumbnail: thumb3,
-    channelName: "Gaming World",
+    channelName: "ألعاب",
     channelAvatar: "/placeholder.svg",
     views: 256000,
-    publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    publishedAt: new Date(Date.now() - 86400000),
     duration: "18:45",
   },
   {
     id: "4",
-    title: "Master Chef Techniques",
+    title: "تقنيات الطهي الاحترافية",
     thumbnail: thumb4,
-    channelName: "Culinary Arts",
+    channelName: "فنون الطهي",
     channelAvatar: "/placeholder.svg",
     views: 78000,
-    publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    publishedAt: new Date(Date.now() - 3 * 86400000),
     duration: "25:10",
   },
   {
     id: "5",
-    title: "Advanced JavaScript Concepts",
+    title: "مفاهيم JavaScript المتقدمة",
     thumbnail: thumb1,
-    channelName: "Code Masters",
+    channelName: "أكواد",
     channelAvatar: "/placeholder.svg",
     views: 189000,
-    publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    publishedAt: new Date(Date.now() - 7 * 86400000),
     duration: "31:20",
+  },
+  {
+    id: "6",
+    title: "صناعة الإيقاعات: دليل كامل",
+    thumbnail: thumb2,
+    channelName: "مصنع الإيقاع",
+    channelAvatar: "/placeholder.svg",
+    views: 145000,
+    publishedAt: new Date(Date.now() - 4 * 86400000),
+    duration: "19:55",
   },
 ];
 
 export function SuggestedVideos() {
   const navigate = useNavigate();
 
-  const handleVideoClick = (videoId: string) => {
-    navigate(`/watch/${videoId}`);
-  };
-
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold mb-4">Up next</h2>
-      <div className="space-y-2">
+    <section className="space-y-4">
+      <h2 className="text-base font-bold sm:text-lg">مقاطع مقترحة</h2>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1">
         {suggestedVideos.map((video) => (
-          <div
+          <VideoCard
             key={video.id}
-            className="flex gap-2 cursor-pointer group"
-            onClick={() => handleVideoClick(video.id)}
-          >
-            <div className="relative w-40 aspect-video bg-youtube-light-gray rounded overflow-hidden flex-shrink-0">
-              <img
-                src={video.thumbnail}
-                alt={video.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-              />
-              <div className="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
-                {video.duration}
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-sm leading-4 line-clamp-2 group-hover:text-youtube-red transition-colors">
-                {video.title}
-              </h3>
-              <p className="text-youtube-gray text-xs mt-1">{video.channelName}</p>
-              <p className="text-youtube-gray text-xs">
-                {video.views >= 1000000 
-                  ? `${(video.views / 1000000).toFixed(1)}M` 
-                  : `${(video.views / 1000).toFixed(1)}K`} views
-              </p>
-            </div>
-          </div>
+            {...video}
+            compact
+            onClick={() => navigate(`/watch/${video.id}`)}
+          />
         ))}
       </div>
-    </div>
+    </section>
   );
 }
