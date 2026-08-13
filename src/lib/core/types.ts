@@ -5,10 +5,12 @@ export type MediaKind = "video" | "audio";
 /** A registered content source. The handle is device-local and never leaves it. */
 export interface RootRecord {
   id: string;
-  /** short name given by the admin, e.g. "A" */
+  /** the root key used in URLs (`root=F`), given by the admin */
   name: string;
   /** optional descriptive label */
   label?: string;
+  /** the real path the admin typed, e.g. `F:\#Videos` (never shown in URLs) */
+  displayPath?: string;
   /** the granted directory handle — only reachable from this browser profile */
   handle: FileSystemDirectoryHandle;
   createdAt: number;
