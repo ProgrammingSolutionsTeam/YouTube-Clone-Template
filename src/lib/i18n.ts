@@ -1,0 +1,182 @@
+/** Bilingual dictionary (Arabic RTL / English LTR). */
+
+import type { Language } from "./vault/settings";
+
+type Dict = Record<string, { ar: string; en: string }>;
+
+const D: Dict = {
+  "app.name": { ar: "مكتبتي", en: "MyLibrary" },
+  "nav.home": { ar: "الرئيسية", en: "Home" },
+  "nav.trending": { ar: "الأكثر مشاهدة", en: "Trending" },
+  "nav.subscriptions": { ar: "قنواتي المثبتة", en: "Pinned channels" },
+  "nav.channels": { ar: "القنوات", en: "Channels" },
+  "nav.library": { ar: "المكتبة", en: "Library" },
+  "nav.history": { ar: "سجل المشاهدة", en: "History" },
+  "nav.liked": { ar: "المفضلة", en: "Favorites" },
+  "nav.watchLater": { ar: "المشاهدة لاحقًا", en: "Watch later" },
+  "nav.settings": { ar: "الإعدادات", en: "Settings" },
+  "nav.explore": { ar: "استكشاف", en: "Explore" },
+  "nav.browse": { ar: "تصفح", en: "Browse" },
+
+  "common.save": { ar: "حفظ", en: "Save" },
+  "common.cancel": { ar: "إلغاء", en: "Cancel" },
+  "common.delete": { ar: "حذف", en: "Delete" },
+  "common.add": { ar: "إضافة", en: "Add" },
+  "common.browseFolder": { ar: "استعراض مجلد", en: "Pick folder" },
+  "common.search": { ar: "بحث", en: "Search" },
+  "common.searchPlaceholder": { ar: "ابحث في مكتبتك", en: "Search your library" },
+  "common.loading": { ar: "جارٍ التحميل…", en: "Loading…" },
+  "common.none": { ar: "لا يوجد شيء بعد", en: "Nothing here yet" },
+  "common.items": { ar: "عنصر", en: "items" },
+  "common.videos": { ar: "مقطع", en: "videos" },
+  "common.folders": { ar: "مجلد", en: "folders" },
+  "common.channel": { ar: "قناة", en: "Channel" },
+  "common.playlist": { ar: "قائمة", en: "Playlist" },
+  "common.back": { ar: "رجوع", en: "Back" },
+  "common.signIn": { ar: "تسجيل الدخول", en: "Sign in" },
+  "common.signUp": { ar: "إنشاء حساب", en: "Create account" },
+  "common.signOut": { ar: "تسجيل الخروج", en: "Sign out" },
+  "common.guest": { ar: "زائر", en: "Guest" },
+  "common.rescan": { ar: "إعادة الفهرسة", en: "Rescan" },
+  "common.scanning": { ar: "جارٍ الفهرسة", en: "Scanning" },
+  "common.confirm": { ar: "تأكيد", en: "Confirm" },
+  "common.optional": { ar: "اختياري", en: "optional" },
+
+  "home.empty.title": { ar: "لا توجد وسائط بعد", en: "No media yet" },
+  "home.empty.body": {
+    ar: "أضف جذرًا (Root) من الإعدادات ثم امنح المتصفح صلاحية الوصول إلى مجلدك.",
+    en: "Add a root in Settings, then grant the browser access to your folder.",
+  },
+  "home.openSettings": { ar: "فتح الإعدادات", en: "Open settings" },
+  "home.latest": { ar: "أحدث الإضافات", en: "Latest" },
+  "home.all": { ar: "الكل", en: "All" },
+  "home.video": { ar: "فيديو", en: "Video" },
+  "home.audio": { ar: "صوت", en: "Audio" },
+
+  "settings.title": { ar: "الإعدادات", en: "Settings" },
+  "settings.subtitle": {
+    ar: "تحكم كامل في المظهر واللغة والجذور والمشغل وحسابك",
+    en: "Full control over look, language, roots, player and your account",
+  },
+  "settings.tab.general": { ar: "عام", en: "General" },
+  "settings.tab.roots": { ar: "الجذور", en: "Roots" },
+  "settings.tab.player": { ar: "المشغل", en: "Player" },
+  "settings.tab.library": { ar: "المكتبة", en: "Library" },
+  "settings.tab.account": { ar: "الحساب", en: "Account" },
+  "settings.tab.privacy": { ar: "الخصوصية", en: "Privacy" },
+  "settings.tab.advanced": { ar: "متقدم", en: "Advanced" },
+  "settings.language": { ar: "اللغة", en: "Language" },
+  "settings.theme": { ar: "المظهر", en: "Theme" },
+  "settings.theme.light": { ar: "فاتح", en: "Light" },
+  "settings.theme.dark": { ar: "داكن", en: "Dark" },
+  "settings.theme.system": { ar: "النظام", en: "System" },
+  "settings.accent": { ar: "لون الواجهة", en: "Accent color" },
+  "settings.fontScale": { ar: "حجم الخط", en: "Font size" },
+  "settings.reduceMotion": { ar: "تقليل الحركة", en: "Reduce motion" },
+
+  "roots.title": { ar: "جذور المكتبة", en: "Library roots" },
+  "roots.desc": {
+    ar: "لكل جذر مفتاح مختصر (root=) ومسار حقيقي من جهازك. المجلدات داخل الجذر تصبح قنوات، والمجلدات الفرعية قوائم.",
+    en: "Each root has a short key (root=) plus a real path on your device. Folders become channels, nested folders become playlists.",
+  },
+  "roots.key": { ar: "مفتاح الجذر", en: "Root key" },
+  "roots.keyHint": { ar: "حرف أو كلمة، مثال: F أو videos", en: "A letter or word, e.g. F or videos" },
+  "roots.path": { ar: "المسار على جهازك", en: "Path on your device" },
+  "roots.pathHint": { ar: "مثال: F:\\#Videos", en: "e.g. F:\\#Videos" },
+  "roots.grant": { ar: "منح الوصول", en: "Grant access" },
+  "roots.granted": { ar: "الوصول ممنوح", en: "Access granted" },
+  "roots.needsGrant": { ar: "يحتاج إذنًا", en: "Needs permission" },
+  "roots.added": { ar: "تمت إضافة الجذر", en: "Root added" },
+  "roots.pickFirst": {
+    ar: "اختر المجلد من جهازك أولًا حتى يُمنح المتصفح صلاحية القراءة.",
+    en: "Pick the folder on your device first so the browser gets read access.",
+  },
+  "roots.dupKey": { ar: "هذا المفتاح مستخدم بالفعل", en: "That key is already in use" },
+  "roots.unsupported": {
+    ar: "هذا المتصفح لا يدعم الوصول للمجلدات المحلية. استخدم Chrome أو Edge على الحاسب.",
+    en: "This browser cannot access local folders. Use Chrome or Edge on desktop.",
+  },
+  "roots.count": { ar: "عنصر مفهرس", en: "indexed items" },
+
+  "account.name": { ar: "اسم المستخدم", en: "Username" },
+  "account.email": { ar: "البريد الإلكتروني", en: "Email" },
+  "account.password": { ar: "كلمة المرور", en: "Password" },
+  "account.currentPassword": { ar: "كلمة المرور الحالية", en: "Current password" },
+  "account.newPassword": { ar: "كلمة المرور الجديدة", en: "New password" },
+  "account.folder": { ar: "مجلد بياناتك المشفّر", en: "Your encrypted data folder" },
+  "account.guestNotice": {
+    ar: "أنت تتصفح كزائر: إعداداتك محفوظة في مجلد جلستك ومشفّرة على هذا الجهاز. أنشئ حسابًا لنقلها إلى مجلدك الخاص.",
+    en: "You are browsing as a guest: settings live in your session folder, encrypted on this device. Create an account to move them to your own folder.",
+  },
+  "account.updated": { ar: "تم تحديث الحساب", en: "Account updated" },
+  "account.wrongPassword": { ar: "كلمة المرور غير صحيحة", en: "Wrong password" },
+  "account.exists": { ar: "هذا البريد مستخدم بالفعل", en: "That email is already registered" },
+  "account.notFound": { ar: "لا يوجد حساب بهذا البريد", en: "No account with that email" },
+  "account.role": { ar: "الصلاحية", en: "Role" },
+
+  "player.speed": { ar: "السرعة", en: "Speed" },
+  "player.subtitles": { ar: "الترجمة", en: "Subtitles" },
+  "player.quality": { ar: "الجودة", en: "Quality" },
+  "player.theater": { ar: "وضع المسرح", en: "Theater" },
+  "player.pip": { ar: "صورة داخل صورة", en: "Picture in picture" },
+  "player.autoplay": { ar: "تشغيل تلقائي للتالي", en: "Autoplay next" },
+  "player.resume": { ar: "استئناف من آخر موضع", en: "Resume where I stopped" },
+  "player.loop": { ar: "تكرار", en: "Loop" },
+  "player.volume": { ar: "الصوت", en: "Volume" },
+  "player.seekStep": { ar: "خطوة التقديم (ثانية)", en: "Seek step (seconds)" },
+  "player.subtitleSize": { ar: "حجم الترجمة", en: "Subtitle size" },
+  "player.subtitleDelay": { ar: "تأخير الترجمة (ثانية)", en: "Subtitle delay (s)" },
+  "player.off": { ar: "إيقاف", en: "Off" },
+  "player.unsupported": {
+    ar: "هذا الملف غير مدعوم للتشغيل المباشر في المتصفح، يمكنك تنزيله.",
+    en: "This file cannot play directly in the browser; you can download it.",
+  },
+  "player.download": { ar: "تنزيل", en: "Download" },
+  "player.favorite": { ar: "إضافة للمفضلة", en: "Favorite" },
+  "player.unfavorite": { ar: "إزالة من المفضلة", en: "Remove favorite" },
+  "player.watchLater": { ar: "المشاهدة لاحقًا", en: "Watch later" },
+
+  "library.gridDensity": { ar: "كثافة الشبكة", en: "Grid density" },
+  "library.showThumbnails": { ar: "إظهار الصور المصغرة", en: "Show thumbnails" },
+  "library.kindFilter": { ar: "نوع الوسائط", en: "Media kind" },
+  "library.sortBy": { ar: "الترتيب", en: "Sort by" },
+  "library.sort.recent": { ar: "الأحدث", en: "Newest" },
+  "library.sort.title": { ar: "الاسم", en: "Title" },
+  "library.sort.size": { ar: "الحجم", en: "Size" },
+  "library.sort.duration": { ar: "المدة", en: "Duration" },
+  "library.hideUnavailable": { ar: "إخفاء الملفات المفقودة", en: "Hide missing files" },
+  "library.clearHistory": { ar: "مسح السجل", en: "Clear history" },
+
+  "privacy.saveHistory": { ar: "حفظ سجل المشاهدة", en: "Save watch history" },
+  "privacy.historyLimit": { ar: "حد السجل", en: "History limit" },
+  "privacy.saveResume": { ar: "حفظ مواضع التوقف", en: "Save resume positions" },
+  "privacy.lockOnClose": { ar: "قفل البيانات عند الإغلاق", en: "Lock data on close" },
+
+  "scanner.scanOnStartup": { ar: "فهرسة تلقائية عند البدء", en: "Scan on startup" },
+  "scanner.deepDetect": { ar: "كشف عميق للتنسيقات", en: "Deep format detection" },
+  "scanner.thumbnails": { ar: "توليد صور مصغرة", en: "Generate thumbnails" },
+  "advanced.export": { ar: "تصدير بياناتي", en: "Export my data" },
+  "advanced.resetIndex": { ar: "مسح الفهرس", en: "Clear index" },
+  "advanced.wipe": { ar: "حذف كل البيانات المحلية", en: "Delete all local data" },
+  "advanced.wipeDesc": {
+    ar: "يحذف الحسابات والإعدادات والفهرس من هذا الجهاز. لا يمس ملفاتك على القرص.",
+    en: "Removes accounts, settings and the index from this device. Your disk files are untouched.",
+  },
+
+  "auth.title": { ar: "حساب محلي", en: "Local account" },
+  "auth.subtitle": {
+    ar: "الحسابات وكل بياناتها مخزنة ومشفّرة على هذا الجهاز فقط.",
+    en: "Accounts and all their data are stored and encrypted on this device only.",
+  },
+  "auth.continueGuest": { ar: "المتابعة كزائر", en: "Continue as guest" },
+};
+
+export function translate(key: string, language: Language): string {
+  const entry = D[key];
+  if (!entry) return key;
+  return entry[language];
+}
+
+export function dirFor(language: Language): "rtl" | "ltr" {
+  return language === "ar" ? "rtl" : "ltr";
+}
