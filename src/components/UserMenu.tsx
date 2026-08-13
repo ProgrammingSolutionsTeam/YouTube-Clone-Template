@@ -1,94 +1,78 @@
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, User, Tv, Moon, Sun, Monitor } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Heart, LogIn, LogOut, Moon, Settings, Sun, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSession } from "@/context/SessionProvider";
 
 export function UserMenu() {
-  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  const [mounted, setMounted] = useState(false);
-
-  // Avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <Avatar className="h-8 w-8">
-        <AvatarFallback>
-          <User className="h-4 w-4" />
-        </AvatarFallback>
-      </Avatar>
-    );
-  }
-
-  const handleSettingsClick = () => {
-    navigate('/settings');
-  };
-
-  const handleChannelsClick = () => {
-    navigate('/channels');
-  };
+  const { user, settings, updateSettings, signOut, t, folder } = useSession();
+  const dark = settings.theme === "dark";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-secondary">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder.svg" alt="User avatar" />
-            <AvatarFallback className="bg-youtube-red text-primary-foreground">
-              <User className="h-4 w-4" />
+            <AvatarFallback
+              className="text-xs font-bold text-primary-foreground"
+              style={{ backgroundColor: user ? `hsl(${user.avatarColor})` : "hsl(var(--youtube-red))" }}
+            >
+              {user ? user.displayName.slice(0, 2) : <User className="h-4 w-4" />}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        className="w-56 bg-popover border border-border shadow-lg" 
-        align="end" 
-        forceMount
-      >
-        <DropdownMenuItem onClick={handleSettingsClick} className="cursor-pointer">
+      <DropdownMenuContent className="w-64" align="end">
+        <DropdownMenuLabel className="space-y-0.5">
+          <div className="truncate text-sm font-semibold">{user ? user.displayName : t("common.guest")}</div>
+          <div className="truncate text-xs font-normal text-muted-foreground" dir="ltr">
+            {user ? user.email : folder}
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer">
           <Settings className="me-2 h-4 w-4" />
-          <span>الإعدادات</span>
+          <span>{t("nav.settings")}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleChannelsClick} className="cursor-pointer">
-          <Tv className="me-2 h-4 w-4" />
-          <span>قنواتي</span>
+        <DropdownMenuItem onClick={() => navigate("/liked")} className="cursor-pointer">
+          <Heart className="me-2 h-4 w-4" />
+          <span>{t("nav.liked")}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => updateSettings({ theme: dark ? "light" : "dark" })}
+          className="cursor-pointer"
+        >
+          {dark ? <Sun className="me-2 h-4 w-4" /> : <Moon className="me-2 h-4 w-4" />}
+          <span>{dark ? t("settings.theme.light") : t("settings.theme.dark")}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => updateSettings({ language: settings.language === "ar" ? "en" : "ar" })}
+          className="cursor-pointer"
+        >
+          <span className="me-2 text-xs font-bold">{settings.language === "ar" ? "EN" : "ع"}</span>
+          <span>{settings.language === "ar" ? "English" : "العربية"}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="cursor-pointer"
-        >
-          {theme === "dark" ? (
-            <>
-              <Sun className="me-2 h-4 w-4" />
-              <span>الوضع النهاري</span>
-            </>
-          ) : (
-            <>
-              <Moon className="me-2 h-4 w-4" />
-              <span>الوضع الليلي</span>
-            </>
-          )}
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme("system")}
-          className="cursor-pointer"
-        >
-          <Monitor className="me-2 h-4 w-4" />
-          <span>حسب النظام</span>
-        </DropdownMenuItem>
+        {user ? (
+          <DropdownMenuItem onClick={() => void signOut()} className="cursor-pointer text-destructive">
+            <LogOut className="me-2 h-4 w-4" />
+            <span>{t("common.signOut")}</span>
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={() => navigate("/auth")} className="cursor-pointer">
+            <LogIn className="me-2 h-4 w-4" />
+            <span>{t("common.signIn")}</span>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
