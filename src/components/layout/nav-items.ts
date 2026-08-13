@@ -1,44 +1,34 @@
 import {
-  Home,
-  PlaySquare,
   Clock,
-  ThumbsUp,
-  ListVideo,
+  Compass,
+  FolderTree,
+  Heart,
+  Home,
+  Library,
+  Settings,
   TrendingUp,
   Tv,
-  Settings,
   type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
-  icon: LucideIcon;
-  label: string;
   path: string;
+  labelKey: string;
+  icon: LucideIcon;
 }
 
 export const mainMenuItems: NavItem[] = [
-  { icon: Home, label: "الرئيسية", path: "/" },
-  { icon: PlaySquare, label: "الاشتراكات", path: "/subscriptions" },
-  { icon: ListVideo, label: "المكتبة", path: "/library" },
-  { icon: Clock, label: "سجل المشاهدة", path: "/history" },
-  { icon: ThumbsUp, label: "المفضلة", path: "/liked" },
+  { path: "/", labelKey: "nav.home", icon: Home },
+  { path: "/browse", labelKey: "nav.browse", icon: FolderTree },
+  { path: "/subscriptions", labelKey: "nav.subscriptions", icon: Tv },
+  { path: "/library", labelKey: "nav.library", icon: Library },
 ];
 
 export const exploreItems: NavItem[] = [
-  { icon: TrendingUp, label: "الأكثر مشاهدة", path: "/trending" },
-  { icon: Tv, label: "القنوات", path: "/channels" },
+  { path: "/trending", labelKey: "nav.trending", icon: TrendingUp },
+  { path: "/channels", labelKey: "nav.channels", icon: Compass },
+  { path: "/history", labelKey: "nav.history", icon: Clock },
+  { path: "/liked", labelKey: "nav.liked", icon: Heart },
 ];
 
-export const settingsItem: NavItem = {
-  icon: Settings,
-  label: "الإعدادات",
-  path: "/settings",
-};
-
-export const mobileNavItems: NavItem[] = [
-  mainMenuItems[0],
-  mainMenuItems[1],
-  exploreItems[0],
-  mainMenuItems[2],
-  settingsItem,
-];
+export const settingsItem: NavItem = { path: "/settings", labelKey: "nav.settings", icon: Settings };
