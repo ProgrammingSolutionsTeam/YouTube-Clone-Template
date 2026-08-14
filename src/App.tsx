@@ -11,6 +11,9 @@ import Channels from "./pages/Channels";
 import Library from "./pages/Library";
 import Subscriptions from "./pages/Subscriptions";
 import Trending from "./pages/Trending";
+import Auth from "./pages/Auth";
+import Browse from "./pages/Browse";
+import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +36,10 @@ const App = () => (
             <Route path="/trending" element={<Trending />} />
             <Route path="/history" element={<Library />} />
             <Route path="/liked" element={<Library />} />
+            <Route path="/later" element={<Library />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/browse" element={<Browse />} />
+            <Route path="/search" element={<Search />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
