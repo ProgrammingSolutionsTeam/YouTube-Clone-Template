@@ -169,7 +169,49 @@ const D: Dict = {
     en: "Accounts and all their data are stored and encrypted on this device only.",
   },
   "auth.continueGuest": { ar: "المتابعة كزائر", en: "Continue as guest" },
+  "auth.firstAdmin": {
+    ar: "أول حساب يُنشأ على هذا الجهاز يحصل على صلاحية المدير تلقائيًا.",
+    en: "The first account created on this device automatically becomes admin.",
+  },
+  "auth.haveAccount": { ar: "لديك حساب بالفعل؟", en: "Already have an account?" },
+  "auth.needAccount": { ar: "ليس لديك حساب؟", en: "No account yet?" },
+  "auth.welcome": { ar: "مرحبًا بك", en: "Welcome" },
+
+  "scanner.watch": { ar: "متابعة التغييرات", en: "Watch for changes" },
+  "scanner.progress": { ar: "تقدم الفهرسة", en: "Scan progress" },
+
+  "browse.title": { ar: "تصفح المكتبة", en: "Browse library" },
+  "browse.folders": { ar: "المجلدات", en: "Folders" },
+  "browse.items": { ar: "المقاطع", en: "Media" },
+  "browse.pickRoot": { ar: "اختر جذرًا للبدء", en: "Pick a root to start" },
+  "browse.pin": { ar: "تثبيت القناة", en: "Pin channel" },
+  "browse.unpin": { ar: "إلغاء التثبيت", en: "Unpin channel" },
+
+  "search.title": { ar: "نتائج البحث", en: "Search results" },
+  "search.for": { ar: "بحث عن", en: "Results for" },
+  "search.empty": { ar: "لا نتائج مطابقة", en: "No matching results" },
+
+  "watch.related": { ar: "من نفس المجلد", en: "From the same folder" },
+  "watch.details": { ar: "تفاصيل الملف", en: "File details" },
+  "watch.share": { ar: "نسخ الرابط", en: "Copy link" },
+  "watch.copied": { ar: "تم نسخ الرابط", en: "Link copied" },
+  "watch.missing": { ar: "لم يُعثر على هذا العنصر في الفهرس", en: "This item is not in the index" },
+  "watch.grant": { ar: "منح الوصول للمجلد وإعادة المحاولة", en: "Grant folder access and retry" },
+  "watch.resolution": { ar: "الأبعاد", en: "Resolution" },
+  "watch.size": { ar: "الحجم", en: "Size" },
+  "watch.container": { ar: "الحاوية", en: "Container" },
+  "watch.location": { ar: "الموقع", en: "Location" },
+
+  "list.history": { ar: "سجل المشاهدة", en: "Watch history" },
+  "list.favorites": { ar: "المفضلة", en: "Favorites" },
+  "list.watchLater": { ar: "المشاهدة لاحقًا", en: "Watch later" },
+  "list.all": { ar: "كل المكتبة", en: "Everything" },
+  "list.pinned": { ar: "القنوات المثبتة", en: "Pinned channels" },
+  "stats.items": { ar: "عنصر", en: "items" },
+  "stats.channels": { ar: "قناة", en: "channels" },
+  "stats.roots": { ar: "جذر", en: "roots" },
 };
+
 
 export function translate(key: string, language: Language): string {
   const entry = D[key];
