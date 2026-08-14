@@ -1,19 +1,150 @@
-import { useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { VideoPlayer } from "@/components/VideoPlayer";
-import { SuggestedVideos } from "@/components/SuggestedVideos";
+import { Player } from "@/components/media/Player";
+import { MediaCard } from "@/components/media/MediaCard";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useSession } from "@/context/SessionProvider";
+import { browseHref, locationVars, parseQuery, watchHref } from "@/lib/core/paths";
+import { getItem } from "@/lib/media/mediaService";
+import { listLocation, locationOf } from "@/lib/media/library";
+import { formatSize, formatDuration } from "@/lib/format";
+import type { MediaItem } from "@/lib/core/types";
 
 const Watch = () => {
   const { videoId } = useParams<{ videoId: string }>();
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const { t } = useSession();
+  const id = videoId ?? params.get("v") ?? "";
+
+  const [item, setItem] = useState<MediaItem | null>(null);
+  const [siblings, setSiblings] = useState<MediaItem[]>([]);
+  const [missing, setMissing] = useState(false);
+  const [theater, setTheater] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    setItem(null);
+    setMissing(false);
+    (async () => {
+      const found = id ? await getItem(id) : null;
+      if (!alive) return;
+      if (!found) return setMissing(true);
+      setItem(found);
+      const listing = await listLocation(found.rootName, found.dirPath);
+      if (alive) setSiblings(listing.items.filter((x) => x.id !== found.id));
+    })().catch(() => alive && setMissing(true));
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+
+  const location = useMemo(() => (item ? locationOf(item) : parseQuery(params)), [item, params]);
+
+  const playNext = () => {
+    const next = siblings[0];
+    if (next) navigate(watchHref(locationOf(next)));
+  };
+
+  if (missing) {
+    return (
+      <AppLayout>
+        <div className="mx-auto max-w-md rounded-2xl border border-dashed border-border p-8 text-center">
+          <p className="text-sm text-muted-foreground">{t("watch.missing")}</p>
+          <Button asChild className="mt-4 bg-youtube-red hover:bg-youtube-red/90">
+            <Link to="/settings">{t("home.openSettings")}</Link>
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout bare>
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 p-0 sm:p-4 xl:flex-row">
+      <div
+        className={
+          theater
+            ? "mx-auto flex w-full max-w-[1800px] flex-col gap-6 p-0 sm:p-4"
+            : "mx-auto flex w-full max-w-[1600px] flex-col gap-6 p-0 sm:p-4 xl:flex-row"
+        }
+      >
         <div className="min-w-0 flex-1">
-          <VideoPlayer videoId={videoId || "1"} />
+          {item ? (
+            <Player item={item} theater={theater} onTheaterToggle={() => setTheater((v) => !v)} onEnded={playNext} />
+          ) : (
+            <div className="aspect-video w-full animate-pulse bg-secondary sm:rounded-xl" />
+          )}
+
+          {item && (
+            <div className="px-3 pt-4 sm:px-0">
+              <h1 className="text-lg font-bold leading-7 sm:text-xl">{item.title}</h1>
+
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Button asChild variant="secondary" size="sm" className="rounded-full">
+                  <Link to={browseHref({ rootKey: location.rootKey, segments: location.segments.slice(0, 1) })}>
+                    {item.channel || location.rootKey}
+                  </Link>
+                </Button>
+                {item.playlist && (
+                  <Button asChild variant="ghost" size="sm" className="rounded-full">
+                    <Link to={browseHref({ rootKey: location.rootKey, segments: location.segments })}>
+                      {item.playlist}
+                    </Link>
+                  </Button>
+                )}
+              </div>
+
+              <div className="mt-4 rounded-xl bg-secondary/50 p-4">
+                <h2 className="mb-2 text-sm font-semibold">{t("watch.details")}</h2>
+                <dl className="grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-4">
+                  <div>
+                    <dt>{t("watch.size")}</dt>
+                    <dd className="font-medium text-foreground">{formatSize(item.size)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("watch.container")}</dt>
+                    <dd className="font-medium text-foreground" dir="ltr">
+                      {item.container || item.extension}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t("watch.resolution")}</dt>
+                    <dd className="font-medium text-foreground" dir="ltr">
+                      {item.width && item.height ? `${item.width}×${item.height}` : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t("player.speed")}</dt>
+                    <dd className="font-medium text-foreground" dir="ltr">
+                      {formatDuration(item.duration)}
+                    </dd>
+                  </div>
+                </dl>
+                <div className="mt-3 flex flex-wrap gap-1.5" dir="ltr">
+                  {locationVars(location).map((variable) => (
+                    <Badge key={variable} variant="outline" className="font-mono text-[11px]">
+                      {variable}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <aside className="px-3 pb-6 sm:px-0 xl:w-[380px] xl:shrink-0">
-          <SuggestedVideos />
+
+        <aside className={theater ? "px-3 pb-6 sm:px-0" : "px-3 pb-6 sm:px-0 xl:w-[380px] xl:shrink-0"}>
+          <h2 className="mb-3 text-sm font-semibold">{t("watch.related")}</h2>
+          {siblings.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("common.none")}</p>
+          ) : (
+            <div className={theater ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-4" : "space-y-3"}>
+              {siblings.slice(0, 20).map((sibling) => (
+                <MediaCard key={sibling.id} item={sibling} compact={!theater} />
+              ))}
+            </div>
+          )}
         </aside>
       </div>
     </AppLayout>
