@@ -48,6 +48,12 @@ const Watch = () => {
     if (next) navigate(watchHref(locationOf(next)));
   };
 
+  const playPrevious = () => {
+    const previous = siblings[siblings.length - 1];
+    if (previous) navigate(watchHref(locationOf(previous)));
+  };
+
+
   if (missing) {
     return (
       <AppLayout>
