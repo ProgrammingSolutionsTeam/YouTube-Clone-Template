@@ -48,6 +48,12 @@ const Watch = () => {
     if (next) navigate(watchHref(locationOf(next)));
   };
 
+  const playPrevious = () => {
+    const previous = siblings[siblings.length - 1];
+    if (previous) navigate(watchHref(locationOf(previous)));
+  };
+
+
   if (missing) {
     return (
       <AppLayout>
@@ -72,7 +78,15 @@ const Watch = () => {
       >
         <div className="min-w-0 flex-1">
           {item ? (
-            <Player item={item} theater={theater} onTheaterToggle={() => setTheater((v) => !v)} onEnded={playNext} />
+            <Player
+              item={item}
+              theater={theater}
+              onTheaterToggle={() => setTheater((v) => !v)}
+              onEnded={playNext}
+              onNext={siblings.length ? playNext : undefined}
+              onPrevious={siblings.length > 1 ? playPrevious : undefined}
+            />
+
           ) : (
             <div className="aspect-video w-full animate-pulse bg-secondary sm:rounded-xl" />
           )}
