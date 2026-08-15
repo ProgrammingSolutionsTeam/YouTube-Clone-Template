@@ -60,7 +60,7 @@ async function engine(): Promise<FFmpegInstance> {
     instance = (async () => {
       const [{ FFmpeg }, { toBlobURL }] = await Promise.all([import("@ffmpeg/ffmpeg"), import("@ffmpeg/util")]);
       const ff = new FFmpeg();
-      ff.on("log", ({ message }) => log.debug("ffmpeg", message));
+      ff.on("log", ({ message }) => log.debug("player", message));
       await ff.load({
         coreURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.js`, "text/javascript"),
         wasmURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.wasm`, "application/wasm"),
@@ -140,7 +140,7 @@ async function tryRemux(file: File, onStatus: (s: TranscodeStatus) => void): Pro
       },
     };
   } catch (error) {
-    log.info("transcoder", "remux not possible, falling back", { error: String(error) });
+    log.info("player", "remux not possible, falling back", { error: String(error) });
     return null;
   }
 }
@@ -281,7 +281,7 @@ async function streamSegments(
         }
       } catch (error) {
         if (disposed) return;
-        log.warn("transcoder", "segment failed", { cursor, error: String(error) });
+        log.warn("player", "segment failed", { cursor, error: String(error) });
         onStatus({ stage: "error", message: String(error) });
         return;
       }
