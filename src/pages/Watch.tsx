@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Player } from "@/components/media/Player";
 import { MediaCard } from "@/components/media/MediaCard";
@@ -8,14 +8,16 @@ import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/context/SessionProvider";
 import { browseHref, locationVars, parseQuery, watchHref } from "@/lib/core/paths";
 import { getItem } from "@/lib/media/mediaService";
-import { listLocation, locationOf } from "@/lib/media/library";
+import { adjacentItems, listLocation, locationOf } from "@/lib/media/library";
 import { formatSize, formatDuration } from "@/lib/format";
 import type { MediaItem } from "@/lib/core/types";
+import { ArrowLeft, ListVideo, Play } from "lucide-react";
 
 const Watch = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const routeLocation = useLocation();
   const { t } = useSession();
   const id = videoId ?? params.get("v") ?? "";
 
@@ -34,7 +36,7 @@ const Watch = () => {
       if (!found) return setMissing(true);
       setItem(found);
       const listing = await listLocation(found.rootName, found.dirPath);
-      if (alive) setSiblings(listing.items.filter((x) => x.id !== found.id));
+      if (alive) setSiblings(adjacentItems(listing.items, found.id).ordered);
     })().catch(() => alive && setMissing(true));
     return () => {
       alive = false;
@@ -43,13 +45,15 @@ const Watch = () => {
 
   const location = useMemo(() => (item ? locationOf(item) : parseQuery(params)), [item, params]);
 
+  const adjacent = useMemo(() => adjacentItems(siblings, id), [id, siblings]);
+
   const playNext = () => {
-    const next = siblings[0];
+    const next = adjacent.next;
     if (next) navigate(watchHref(locationOf(next)));
   };
 
   const playPrevious = () => {
-    const previous = siblings[siblings.length - 1];
+    const previous = adjacent.previous;
     if (previous) navigate(watchHref(locationOf(previous)));
   };
 
@@ -83,8 +87,8 @@ const Watch = () => {
               theater={theater}
               onTheaterToggle={() => setTheater((v) => !v)}
               onEnded={playNext}
-              onNext={siblings.length ? playNext : undefined}
-              onPrevious={siblings.length > 1 ? playPrevious : undefined}
+              onNext={adjacent.next ? playNext : undefined}
+              onPrevious={adjacent.previous ? playPrevious : undefined}
             />
 
           ) : (
@@ -93,6 +97,18 @@ const Watch = () => {
 
           {item && (
             <div className="px-3 pt-4 sm:px-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mb-2"
+                onClick={() => {
+                  if (routeLocation.key !== "default") navigate(-1);
+                  else navigate(browseHref({ rootKey: location.rootKey, segments: location.segments }));
+                }}
+              >
+                <ArrowLeft className="me-2 h-4 w-4 rtl:rotate-180" />
+                {t("common.back")}
+              </Button>
               <h1 className="text-lg font-bold leading-7 sm:text-xl">{item.title}</h1>
 
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -149,14 +165,27 @@ const Watch = () => {
         </div>
 
         <aside className={theater ? "px-3 pb-6 sm:px-0" : "px-3 pb-6 sm:px-0 xl:w-[380px] xl:shrink-0"}>
-          <h2 className="mb-3 text-sm font-semibold">{t("watch.related")}</h2>
-          {siblings.length === 0 ? (
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+            <ListVideo className="h-4 w-4" />
+            {t("watch.playlist")}
+          </h2>
+          {!item || siblings.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("common.none")}</p>
           ) : (
             <div className={theater ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-4" : "space-y-3"}>
-              {siblings.slice(0, 20).map((sibling) => (
-                <MediaCard key={sibling.id} item={sibling} compact={!theater} />
-              ))}
+              {siblings.slice(0, 50).map((sibling) =>
+                sibling.id === item?.id ? (
+                  <div key={sibling.id} aria-current="true" className="flex min-h-20 items-center gap-3 border-s-4 border-youtube-red bg-secondary p-3">
+                    <Play className="h-4 w-4 shrink-0 fill-youtube-red text-youtube-red" />
+                    <div className="min-w-0">
+                      <p className="line-clamp-2 text-sm font-semibold">{sibling.title}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t("watch.nowPlaying")}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <MediaCard key={sibling.id} item={sibling} compact={!theater} />
+                ),
+              )}
             </div>
           )}
         </aside>

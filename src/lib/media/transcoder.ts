@@ -19,8 +19,7 @@
 
 import { log } from "../core/logger";
 
-const CORE_VERSION = "0.12.10";
-const CORE_BASE = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd`;
+const CORE_BASE = "/assets/scripts";
 
 const SEGMENT_SECONDS = 8;
 /** how far ahead of the playhead we keep transcoding */
@@ -303,6 +302,11 @@ async function streamSegments(
     mode: "stream",
     destroy: () => {
       disposed = true;
+      try {
+        if (source.readyState === "open") source.endOfStream();
+      } catch {
+        /* source buffer may still be updating */
+      }
       URL.revokeObjectURL(url);
       void ff.deleteFile(name).catch(() => undefined);
     },

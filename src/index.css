@@ -137,7 +137,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: "Cairo", system-ui, sans-serif;
+    font-family: Tahoma, Arial, system-ui, sans-serif;
   }
 }
 

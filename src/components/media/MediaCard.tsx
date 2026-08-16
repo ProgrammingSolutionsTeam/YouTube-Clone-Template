@@ -12,6 +12,7 @@ import type { MediaItem } from "@/lib/core/types";
 import { locationOf } from "@/lib/media/library";
 import { watchHref, browseHref } from "@/lib/core/paths";
 import { thumbnailUrl, openPlayback } from "@/lib/media/mediaService";
+import { subscribeThumbnail } from "@/lib/media/thumbnailQueue";
 import { formatDuration, formatSize, timeAgo } from "@/lib/format";
 import { useSession } from "@/context/SessionProvider";
 
@@ -41,18 +42,28 @@ export function MediaCard({
     if (!settings.library.showThumbnails) return;
     let url: string | null = null;
     let alive = true;
+    const applyUrl = (value: string | null) => {
+      if (!value) return;
+      if (!alive) {
+        URL.revokeObjectURL(value);
+        return;
+      }
+      if (url) URL.revokeObjectURL(url);
+      url = value;
+      setThumb(value);
+    };
     thumbnailUrl(item.id)
       .then((value) => {
-        if (!alive) return;
-        url = value;
-        setThumb(value);
+        applyUrl(value);
       })
       .catch(() => undefined);
+    const unsubscribe = subscribeThumbnail(item, applyUrl);
     return () => {
       alive = false;
+      unsubscribe();
       if (url) URL.revokeObjectURL(url);
     };
-  }, [item.id, settings.library.showThumbnails]);
+  }, [item, settings.library.showThumbnails]);
 
   useEffect(
     () => () => {
@@ -63,7 +74,7 @@ export function MediaCard({
   );
 
   const startPreview = () => {
-    if (item.kind !== "video" || !item.directPlay || preview) return;
+    if (item.kind !== "video" || !item.directPlay || preview || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     hoverTimer.current = window.setTimeout(() => {
       openPlayback(item)
         .then((opened) => {
@@ -103,7 +114,7 @@ export function MediaCard({
           <img
             src={thumb}
             alt={item.title}
-            loading="lazy"
+            loading={compact ? "eager" : "lazy"}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
@@ -113,24 +124,24 @@ export function MediaCard({
         )}
 
         {/* hover play affordance */}
-        <span className="absolute inset-0 grid place-items-center bg-black/25 opacity-0 transition-opacity group-hover:opacity-100">
-          <span className="grid h-11 w-11 place-items-center rounded-full bg-black/60 text-white">
+        <span className="absolute inset-0 grid place-items-center bg-foreground/25 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="grid h-11 w-11 place-items-center rounded-full bg-foreground/60 text-background">
             <Play className="ms-0.5 h-5 w-5 fill-current" />
           </span>
         </span>
 
-        <span className="absolute bottom-1.5 end-1.5 rounded bg-youtube-dark/85 px-1.5 py-0.5 text-[11px] font-medium text-white">
+        <span className="absolute bottom-1.5 end-1.5 rounded bg-youtube-dark/85 px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground">
           {item.duration ? formatDuration(item.duration) : formatSize(item.size)}
         </span>
 
         {!item.directPlay && (
-          <span className="absolute top-1.5 start-1.5 rounded bg-youtube-dark/85 px-1.5 py-0.5 text-[10px] font-medium uppercase text-white" dir="ltr">
+          <span className="absolute top-1.5 start-1.5 rounded bg-youtube-dark/85 px-1.5 py-0.5 text-[10px] font-medium uppercase text-primary-foreground" dir="ltr">
             {item.extension}
           </span>
         )}
 
         {watchedPercent > 1 && (
-          <span className="absolute inset-x-0 bottom-0 h-[3px] bg-white/30">
+          <span className="absolute inset-x-0 bottom-0 h-[3px] bg-primary-foreground/30">
             <span className="block h-full bg-youtube-red" style={{ width: `${watchedPercent}%` }} />
           </span>
         )}
