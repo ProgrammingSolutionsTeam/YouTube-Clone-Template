@@ -91,8 +91,6 @@ export function Player({
 
   const shellRef = useRef<HTMLDivElement | null>(null);
   const mediaRef = useRef<HTMLVideoElement | null>(null);
-  const previewRef = useRef<HTMLVideoElement | null>(null);
-  const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
   const hideTimer = useRef<number | null>(null);
   const tapTimer = useRef<number | null>(null);
@@ -442,23 +440,6 @@ export function Player({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration, item.subtitles, nudge, onNext, onPrevious, onTheaterToggle, seekStep, showChrome, speed, togglePlay, volume]);
 
-  /* --------------------------------------------------------- hover preview */
-  const previewSrc = source?.native && !isAudio ? source.url : null;
-
-  const paintPreview = (seconds: number) => {
-    const video = previewRef.current;
-    const canvas = previewCanvasRef.current;
-    if (!video || !canvas || !previewSrc) return;
-    video.currentTime = seconds;
-    video.onseeked = () => {
-      const context = canvas.getContext("2d");
-      if (!context) return;
-      canvas.width = 160;
-      canvas.height = Math.round((160 * (video.videoHeight || 90)) / (video.videoWidth || 160));
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    };
-  };
-
   const pointToTime = (clientX: number) => {
     const bar = barRef.current;
     if (!bar || !duration) return null;
@@ -473,7 +454,6 @@ export function Player({
     const point = pointToTime(event.clientX);
     if (!point) return;
     setHover(point);
-    paintPreview(point.time);
   };
 
   const scrubbing = useRef(false);
@@ -676,7 +656,6 @@ export function Player({
                     className="pointer-events-none absolute bottom-6 z-10 -translate-x-1/2 rounded-md bg-black/85 p-1 text-center"
                     style={{ left: hover.x }}
                   >
-                    {previewSrc && <canvas ref={previewCanvasRef} className="mb-1 h-[90px] w-[160px] rounded" />}
                     <span className="px-1 text-[11px] font-medium text-white" dir="ltr">
                       {formatDuration(hover.time)}
                     </span>
@@ -849,10 +828,6 @@ export function Player({
           </>
         )}
 
-        {/* hidden element used to paint scrubber previews */}
-        {previewSrc && (
-          <video ref={previewRef} src={previewSrc} muted preload="metadata" className="hidden" playsInline />
-        )}
       </div>
 
       {/* quick actions under the player (mobile friendly) */}
