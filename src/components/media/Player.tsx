@@ -114,6 +114,7 @@ export function Player({
   const [volume, setVolume] = useState(settings.player.volume);
   const [muted, setMuted] = useState(settings.player.muted);
   const [fullscreen, setFullscreen] = useState(false);
+  const [pip, setPip] = useState(false);
   const [chromeVisible, setChromeVisible] = useState(true);
   const [hover, setHover] = useState<{ time: number; x: number } | null>(null);
   const [flash, setFlash] = useState<{ dir: "back" | "forward"; key: number } | null>(null);
@@ -165,12 +166,33 @@ export function Player({
 
     return () => {
       alive = false;
+      const media = mediaRef.current;
+      if (media) {
+        media.pause();
+        if (document.pictureInPictureElement === media) void document.exitPictureInPicture().catch(() => undefined);
+        media.removeAttribute("src");
+        media.load();
+      }
       release?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item, qualityId]);
 
-  useEffect(() => () => void releaseEngine(), []);
+  useEffect(
+    () => () => {
+      if (hideTimer.current) window.clearTimeout(hideTimer.current);
+      if (tapTimer.current) window.clearTimeout(tapTimer.current);
+      const media = mediaRef.current;
+      if (media) {
+        media.pause();
+        if (document.pictureInPictureElement === media) void document.exitPictureInPicture().catch(() => undefined);
+        media.removeAttribute("src");
+        media.load();
+      }
+      void releaseEngine();
+    },
+    [],
+  );
 
   /* ------------------------------------------------------------- subtitles */
   useEffect(() => {
@@ -281,6 +303,19 @@ export function Player({
       if (mediaRef.current && !mediaRef.current.paused) setChromeVisible(false);
     }, 2800);
   }, []);
+
+  useEffect(() => {
+    const media = mediaRef.current;
+    if (!media) return;
+    const entered = () => setPip(true);
+    const left = () => setPip(false);
+    media.addEventListener("enterpictureinpicture", entered);
+    media.addEventListener("leavepictureinpicture", left);
+    return () => {
+      media.removeEventListener("enterpictureinpicture", entered);
+      media.removeEventListener("leavepictureinpicture", left);
+    };
+  }, [source]);
 
   const togglePlay = useCallback(() => {
     const media = mediaRef.current;
@@ -514,7 +549,7 @@ export function Player({
                 ref={mediaRef}
                 key={source.url}
                 src={source.url}
-                autoPlay
+                 autoPlay
                 playsInline
                 preload="auto"
                 onLoadedMetadata={onLoaded}
@@ -795,7 +830,7 @@ export function Player({
 
                   {settings.player.pipEnabled && !isAudio && (
                     <IconButton label={t("player.pip")} onClick={() => void togglePip()} className="hidden sm:inline-flex">
-                      <PictureInPicture2 className="h-5 w-5" />
+                      <PictureInPicture2 className={cn("h-5 w-5", pip && "text-youtube-red")} />
                     </IconButton>
                   )}
                   <IconButton

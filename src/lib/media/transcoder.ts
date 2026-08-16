@@ -302,6 +302,11 @@ async function streamSegments(
     mode: "stream",
     destroy: () => {
       disposed = true;
+      try {
+        if (source.readyState === "open") source.endOfStream();
+      } catch {
+        /* source buffer may still be updating */
+      }
       URL.revokeObjectURL(url);
       void ff.deleteFile(name).catch(() => undefined);
     },
