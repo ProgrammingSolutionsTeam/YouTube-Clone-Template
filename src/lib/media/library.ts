@@ -136,6 +136,23 @@ export async function listLocation(rootKey: string, segments: string[]): Promise
   return { root, folders, items: sortItems(here, "recent"), totalDeep: inside.length };
 }
 
+/** Stable playlist order used by the player, related list and autoplay. */
+export function playbackOrder(items: MediaItem[]): MediaItem[] {
+  return [...items].sort((a, b) =>
+    a.fileName.localeCompare(b.fileName, undefined, { numeric: true, sensitivity: "base" }),
+  );
+}
+
+export function adjacentItems(items: MediaItem[], currentId: string) {
+  const ordered = playbackOrder(items);
+  const index = ordered.findIndex((entry) => entry.id === currentId);
+  return {
+    ordered,
+    previous: index > 0 ? ordered[index - 1] : undefined,
+    next: index >= 0 && index < ordered.length - 1 ? ordered[index + 1] : undefined,
+  };
+}
+
 /** Top level folders of every root => the channel list. */
 export async function listChannels(): Promise<
   { rootKey: string; name: string; segments: string[]; itemCount: number; playlistCount: number; posterItemId?: string; lastModifiedAt: number }[]

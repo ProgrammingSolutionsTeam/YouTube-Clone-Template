@@ -5,7 +5,7 @@ import type { Language } from "./vault/settings";
 type Dict = Record<string, { ar: string; en: string }>;
 
 const D: Dict = {
-  "app.name": { ar: "مكتبتي", en: "MyLibrary" },
+  "app.name": { ar: "LocalTube", en: "LocalTube" },
   "nav.home": { ar: "الرئيسية", en: "Home" },
   "nav.trending": { ar: "الأكثر مشاهدة", en: "Trending" },
   "nav.subscriptions": { ar: "قنواتي المثبتة", en: "Pinned channels" },
@@ -216,6 +216,8 @@ const D: Dict = {
   "search.empty": { ar: "لا نتائج مطابقة", en: "No matching results" },
 
   "watch.related": { ar: "من نفس المجلد", en: "From the same folder" },
+  "watch.playlist": { ar: "قائمة التشغيل", en: "Playlist" },
+  "watch.nowPlaying": { ar: "قيد التشغيل الآن", en: "Now playing" },
   "watch.details": { ar: "تفاصيل الملف", en: "File details" },
   "watch.share": { ar: "نسخ الرابط", en: "Copy link" },
   "watch.copied": { ar: "تم نسخ الرابط", en: "Link copied" },
