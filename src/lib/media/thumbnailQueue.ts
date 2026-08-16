@@ -19,6 +19,11 @@ async function run() {
   if (!item) return;
   active += 1;
   try {
+    const cached = await thumbnailUrl(item.id);
+    if (cached) {
+      notify(item.id, cached);
+      return;
+    }
     const probe = await probeItem(item, { thumbnail: true });
     if (!probe.error) await saveProbe(item, probe);
     notify(item.id, await thumbnailUrl(item.id));

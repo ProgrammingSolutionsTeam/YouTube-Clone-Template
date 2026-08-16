@@ -549,7 +549,7 @@ export function Player({
                 ref={mediaRef}
                 key={source.url}
                 src={source.url}
-                 autoPlay
+                autoPlay
                 playsInline
                 preload="auto"
                 onLoadedMetadata={onLoaded}

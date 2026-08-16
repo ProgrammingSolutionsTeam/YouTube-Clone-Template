@@ -169,7 +169,7 @@ const Watch = () => {
             <ListVideo className="h-4 w-4" />
             {t("watch.playlist")}
           </h2>
-          {siblings.length === 0 ? (
+          {!item || siblings.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("common.none")}</p>
           ) : (
             <div className={theater ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-4" : "space-y-3"}>
