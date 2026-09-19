@@ -127,6 +127,7 @@ export async function resolveFile(
 /** Verifies that a stored root is still reachable. */
 export async function rootIsReachable(root: RootRecord): Promise<boolean> {
   try {
+    if (!root.handle) return true;
     if ((await handlePermission(root.handle)) !== "granted") return false;
     // Touching the iterator confirms the folder still exists.
     const iterator = (root.handle as unknown as { values: () => AsyncIterableIterator<FileSystemHandle> }).values();
