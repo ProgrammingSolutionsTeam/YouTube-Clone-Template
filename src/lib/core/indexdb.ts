@@ -311,8 +311,9 @@ export const logStore = {
 
 /** Wipes every derived record but keeps the registered roots. */
 export async function resetIndex(): Promise<void> {
-  const t = await tx([STORE.items, STORE.channels, STORE.playlists, STORE.thumbs, STORE.aliases], "readwrite");
-  for (const name of [STORE.items, STORE.channels, STORE.playlists, STORE.thumbs, STORE.aliases]) {
+  const stores = [STORE.items, STORE.channels, STORE.playlists, STORE.thumbs, STORE.aliases, STORE.blobs];
+  const t = await tx(stores, "readwrite");
+  for (const name of stores) {
     t.objectStore(name).clear();
   }
   await done(t);

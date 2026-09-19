@@ -10,7 +10,7 @@
  * a 40 GB file starts instantly and seeking never downloads the whole file.
  */
 
-import { aliasStore, itemsStore, rootsStore, thumbsStore } from "../core/indexdb";
+import { aliasStore, blobsStore, itemsStore, rootsStore, thumbsStore } from "../core/indexdb";
 import { ensurePermission, resolveFile } from "../core/filesystem";
 import { canBrowserProbablyPlay, guessMime } from "../core/formats";
 import { decodeSubtitle, subtitleFormat, toVtt } from "../core/subtitles";
@@ -39,6 +39,15 @@ export async function getItem(id: string): Promise<MediaItem | null> {
 async function fileFor(item: MediaItem, fileName?: string): Promise<File> {
   const root = await rootsStore.get(item.rootId);
   if (!root) throw new MediaAccessError("unavailable");
+
+  // Fallback roots (Firefox/Safari): the File objects were kept when the folder
+  // was picked, so nothing needs a directory handle.
+  if (!root.handle) {
+    const row = await blobsStore.get(blobsStore.key(item.rootId, item.dirPath, fileName ?? item.fileName));
+    if (!row) throw new MediaAccessError("not_found");
+    return row.file;
+  }
+
   if (!(await ensurePermission(root.handle))) throw new MediaAccessError("permission");
   try {
     return await resolveFile(root.handle, item.dirPath, fileName ?? item.fileName);

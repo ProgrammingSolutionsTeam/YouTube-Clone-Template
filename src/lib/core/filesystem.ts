@@ -74,7 +74,8 @@ interface PermissionCapableHandle extends FileSystemDirectoryHandle {
   requestPermission?: (descriptor: { mode: "read" | "readwrite" }) => Promise<PermissionState>;
 }
 
-export async function handlePermission(handle: FileSystemDirectoryHandle): Promise<PermissionState> {
+export async function handlePermission(handle?: FileSystemDirectoryHandle): Promise<PermissionState> {
+  if (!handle) return "granted";
   const h = handle as PermissionCapableHandle;
   if (!h.queryPermission) return "granted";
   try {
@@ -85,7 +86,8 @@ export async function handlePermission(handle: FileSystemDirectoryHandle): Promi
 }
 
 /** Re-requests read access. Must be called from a user gesture. */
-export async function ensurePermission(handle: FileSystemDirectoryHandle): Promise<boolean> {
+export async function ensurePermission(handle?: FileSystemDirectoryHandle): Promise<boolean> {
+  if (!handle) return true;
   const state = await handlePermission(handle);
   if (state === "granted") return true;
   const h = handle as PermissionCapableHandle;
