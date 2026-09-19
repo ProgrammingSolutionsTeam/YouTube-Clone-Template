@@ -15,7 +15,7 @@ import type {
 } from "./types";
 
 const DB_NAME = "medialib";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const STORE = {
   roots: "roots",
@@ -26,6 +26,8 @@ export const STORE = {
   aliases: "aliases",
   logs: "logs",
   meta: "meta",
+  /** File objects kept for browsers without the File System Access API */
+  blobs: "blobs",
 } as const;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -69,6 +71,10 @@ export function openIndex(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(STORE.meta)) {
         db.createObjectStore(STORE.meta, { keyPath: "key" });
+      }
+      if (!db.objectStoreNames.contains(STORE.blobs)) {
+        const blobs = db.createObjectStore(STORE.blobs, { keyPath: "path" });
+        blobs.createIndex("byRoot", "rootId");
       }
     };
     request.onsuccess = () => resolve(request.result);
