@@ -15,7 +15,7 @@ import type {
 } from "./types";
 
 const DB_NAME = "medialib";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const STORE = {
   roots: "roots",
@@ -26,6 +26,8 @@ export const STORE = {
   aliases: "aliases",
   logs: "logs",
   meta: "meta",
+  /** File objects kept for browsers without the File System Access API */
+  blobs: "blobs",
 } as const;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -69,6 +71,10 @@ export function openIndex(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(STORE.meta)) {
         db.createObjectStore(STORE.meta, { keyPath: "key" });
+      }
+      if (!db.objectStoreNames.contains(STORE.blobs)) {
+        const blobs = db.createObjectStore(STORE.blobs, { keyPath: "path" });
+        blobs.createIndex("byRoot", "rootId");
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -211,6 +217,36 @@ export const thumbsStore = {
   count: () => count(STORE.thumbs),
 };
 
+export interface BlobRow {
+  /** `${rootId}/${relative path}` — never leaves the device */
+  path: string;
+  rootId: string;
+  file: File;
+}
+
+/** Fallback file store for browsers without persistent directory handles. */
+export const blobsStore = {
+  key: (rootId: string, segments: string[], fileName: string) =>
+    `${rootId}/${[...segments, fileName].join("/")}`,
+  get: (path: string) => get<BlobRow>(STORE.blobs, path),
+  putMany: (rows: BlobRow[]) => putMany(STORE.blobs, rows),
+  async removeRoot(rootId: string): Promise<void> {
+    const t = await tx([STORE.blobs], "readwrite");
+    const index = t.objectStore(STORE.blobs).index("byRoot");
+    await new Promise<void>((resolve) => {
+      const request = index.openCursor(IDBKeyRange.only(rootId));
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) return resolve();
+        cursor.delete();
+        cursor.continue();
+      };
+      request.onerror = () => resolve();
+    });
+    await done(t);
+  },
+};
+
 export const aliasStore = {
   /** resolves a stale id (renamed file) to the current id */
   resolve: async (id: string): Promise<string> => {
@@ -275,8 +311,9 @@ export const logStore = {
 
 /** Wipes every derived record but keeps the registered roots. */
 export async function resetIndex(): Promise<void> {
-  const t = await tx([STORE.items, STORE.channels, STORE.playlists, STORE.thumbs, STORE.aliases], "readwrite");
-  for (const name of [STORE.items, STORE.channels, STORE.playlists, STORE.thumbs, STORE.aliases]) {
+  const stores = [STORE.items, STORE.channels, STORE.playlists, STORE.thumbs, STORE.aliases, STORE.blobs];
+  const t = await tx(stores, "readwrite");
+  for (const name of stores) {
     t.objectStore(name).clear();
   }
   await done(t);

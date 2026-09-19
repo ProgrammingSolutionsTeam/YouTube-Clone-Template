@@ -58,6 +58,9 @@ class ScannerService {
 
   /** Queues a scan. Resolves when this root finished (or was cancelled). */
   enqueue(root: RootRecord, mode: "full" | "incremental" = "incremental", deepDetect = false): Promise<void> {
+    // Fallback roots have no directory handle; they are re-indexed by re-picking
+    // the folder in Settings, so there is nothing to walk here.
+    if (!root.handle) return Promise.resolve();
     this.queue.push({ root, mode, deepDetect });
     void this.drain();
     return new Promise((resolve) => {

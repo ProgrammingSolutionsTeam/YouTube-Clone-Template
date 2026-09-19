@@ -11,8 +11,15 @@ export interface RootRecord {
   label?: string;
   /** the real path the admin typed, e.g. `F:\#Videos` (never shown in URLs) */
   displayPath?: string;
+  /**
+   * How the files of this root are reached:
+   *  - "handle": File System Access API (Chrome/Edge/Opera), rescannable.
+   *  - "files": folder input fallback (Firefox/Safari), the picked File objects
+   *    are stored locally and re-picking the folder refreshes them.
+   */
+  source?: "handle" | "files";
   /** the granted directory handle — only reachable from this browser profile */
-  handle: FileSystemDirectoryHandle;
+  handle?: FileSystemDirectoryHandle;
   createdAt: number;
   lastScanAt?: number;
   itemCount?: number;
