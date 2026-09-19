@@ -217,6 +217,36 @@ export const thumbsStore = {
   count: () => count(STORE.thumbs),
 };
 
+export interface BlobRow {
+  /** `${rootId}/${relative path}` — never leaves the device */
+  path: string;
+  rootId: string;
+  file: File;
+}
+
+/** Fallback file store for browsers without persistent directory handles. */
+export const blobsStore = {
+  key: (rootId: string, segments: string[], fileName: string) =>
+    `${rootId}/${[...segments, fileName].join("/")}`,
+  get: (path: string) => get<BlobRow>(STORE.blobs, path),
+  putMany: (rows: BlobRow[]) => putMany(STORE.blobs, rows),
+  async removeRoot(rootId: string): Promise<void> {
+    const t = await tx([STORE.blobs], "readwrite");
+    const index = t.objectStore(STORE.blobs).index("byRoot");
+    await new Promise<void>((resolve) => {
+      const request = index.openCursor(IDBKeyRange.only(rootId));
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) return resolve();
+        cursor.delete();
+        cursor.continue();
+      };
+      request.onerror = () => resolve();
+    });
+    await done(t);
+  },
+};
+
 export const aliasStore = {
   /** resolves a stale id (renamed file) to the current id */
   resolve: async (id: string): Promise<string> => {
