@@ -126,6 +126,29 @@ All colors MUST be HSL.
 
 }
 
+/* Bundled locally: no external font request is ever made. */
+@font-face {
+  font-family: "Cairo";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/cairo-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Cairo";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/assets/fonts/cairo-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Cairo";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/cairo-700.woff2") format("woff2");
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -137,7 +160,18 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: Tahoma, Arial, system-ui, sans-serif;
+    font-family: "Cairo", Tahoma, Arial, system-ui, sans-serif;
+  }
+
+  /* Cheap wins for long lists: only paint what is on screen. */
+  img,
+  video {
+    content-visibility: auto;
+  }
+
+  .reduce-motion * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
   }
 }
 
