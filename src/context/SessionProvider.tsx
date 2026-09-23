@@ -219,16 +219,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
       if (saved?.slug) {
         const record = await users.get(saved.slug);
-        // a signed-in session is only restored while the folder key is cached
-        const cachedKey = sessionKeyCache.get(saved.slug);
-        if (record && cachedKey) {
+        // in-memory key first, then the device-sealed copy (survives a reload)
+        const key = sessionKeyCache.get(saved.slug) ?? (await recallKey(saved.slug, deviceKey));
+        if (record && key) {
+          sessionKeyCache.set(record.slug, key);
           if (cancelled) return;
           setUser(toPublic(record));
-          await loadProfile(`users/${record.slug}`, cachedKey);
+          await loadProfile(`users/${record.slug}`, key);
           setReady(true);
           return;
         }
-        if (record && !cachedKey) await sessionStore.set(null, sessionId());
+        if (record && !key) await sessionStore.set(null, sessionId());
       }
 
       if (cancelled) return;
