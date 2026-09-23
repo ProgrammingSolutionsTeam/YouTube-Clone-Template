@@ -21,7 +21,9 @@ import {
   createDek,
   deriveDeviceKey,
   deriveKek,
+  exportRawKey,
   fromBase64,
+  importRawKey,
   newSessionId,
   passwordVerifier,
   randomBytes,
@@ -122,6 +124,35 @@ function sessionId(): string {
   return id;
 }
 
+/**
+ * Keeps a signed-in session alive across reloads.
+ *
+ * The folder key is sealed with the device key and stored inside the vault at
+ * `unlock/<slug>/dek.json`. A reload can reopen it (same device, same browser
+ * profile); anyone copying the database without the browser's local device
+ * secret cannot.
+ */
+const UNLOCK_FILE = "dek.json";
+const unlockFolder = (slug: string) => `unlock/${slug}`;
+
+async function rememberKey(slug: string, dek: CryptoKey, deviceKey: CryptoKey): Promise<void> {
+  await writeSealed(unlockFolder(slug), UNLOCK_FILE, deviceKey, { raw: await exportRawKey(dek) });
+}
+
+async function recallKey(slug: string, deviceKey: CryptoKey): Promise<CryptoKey | null> {
+  const stored = await readSealed<{ raw: string }>(unlockFolder(slug), UNLOCK_FILE, deviceKey);
+  if (!stored?.raw) return null;
+  try {
+    return await importRawKey(stored.raw);
+  } catch {
+    return null;
+  }
+}
+
+async function forgetKey(slug: string): Promise<void> {
+  await vaultFiles.removeFolder(unlockFolder(slug));
+}
+
 function applyAppearance(settings: AppSettings) {
   const root = document.documentElement;
   const accent = ACCENTS.find((a) => a.key === settings.accent) ?? ACCENTS[0];
@@ -188,16 +219,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
       if (saved?.slug) {
         const record = await users.get(saved.slug);
-        // a signed-in session is only restored while the folder key is cached
-        const cachedKey = sessionKeyCache.get(saved.slug);
-        if (record && cachedKey) {
+        // in-memory key first, then the device-sealed copy (survives a reload)
+        const key = sessionKeyCache.get(saved.slug) ?? (await recallKey(saved.slug, deviceKey));
+        if (record && key) {
+          sessionKeyCache.set(record.slug, key);
           if (cancelled) return;
           setUser(toPublic(record));
-          await loadProfile(`users/${record.slug}`, cachedKey);
+          await loadProfile(`users/${record.slug}`, key);
           setReady(true);
           return;
         }
-        if (record && !cachedKey) await sessionStore.set(null, sessionId());
+        if (record && !key) await sessionStore.set(null, sessionId());
       }
 
       if (cancelled) return;
@@ -351,6 +383,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       );
 
       sessionKeyCache.set(slug, dek);
+      await rememberKey(slug, dek, deviceKey);
       await sessionStore.set(slug, sessionId());
       setUser(toPublic(record));
       setAccountCount(await users.count());
@@ -368,6 +401,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const kek = await deriveKek(password, fromBase64(record.kekSalt));
       const dek = await unwrapDek(record.wrappedDek, kek);
       sessionKeyCache.set(record.slug, dek);
+      const { secret, salt } = deviceSecret();
+      await rememberKey(record.slug, dek, await deriveDeviceKey(secret, salt));
       await users.put({ ...record, lastLoginAt: Date.now() });
       await sessionStore.set(record.slug, sessionId());
       setUser(toPublic(record));
@@ -377,13 +412,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    if (user) sessionKeyCache.delete(user.slug);
+    if (user) {
+      sessionKeyCache.delete(user.slug);
+      await forgetKey(user.slug);
+    }
     setUser(null);
     await sessionStore.set(null, sessionId());
     const { secret, salt } = deviceSecret();
     const deviceKey = await deriveDeviceKey(secret, salt);
     await loadProfile(`sessions/${sessionId()}`, deviceKey);
   }, [loadProfile, user]);
+
 
   const updateAccount = useCallback(
     async ({

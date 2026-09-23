@@ -214,6 +214,17 @@ const D: Dict = {
   "search.title": { ar: "نتائج البحث", en: "Search results" },
   "search.for": { ar: "بحث عن", en: "Results for" },
   "search.empty": { ar: "لا نتائج مطابقة", en: "No matching results" },
+  "search.seeAll": { ar: "عرض كل النتائج", en: "See all results" },
+  "roots.filesMode": {
+    ar: "اختيار مجلد (متوافق مع كل المتصفحات)",
+    en: "Pick folder (works in every browser)",
+  },
+  "roots.filesHint": {
+    ar: "يعمل في فايرفوكس وسفاري: تُقرأ ملفات المجلد وتُخزَّن محليًا، وأعد اختيار المجلد لتحديثها.",
+    en: "Works in Firefox and Safari: the folder files are read and cached locally; re-pick the folder to refresh.",
+  },
+  "roots.filesPicked": { ar: "ملفًا جاهزًا للفهرسة", en: "files ready to index" },
+  "roots.reselect": { ar: "أعد اختيار المجلد للتحديث", en: "Re-pick the folder to refresh" },
 
   "watch.related": { ar: "من نفس المجلد", en: "From the same folder" },
   "watch.playlist": { ar: "قائمة التشغيل", en: "Playlist" },

@@ -150,3 +150,21 @@ export function slugify(input: string): string {
 export function newSessionId(): string {
   return toBase64(randomBytes(12)).replace(/[^a-zA-Z0-9]/g, "").slice(0, 16);
 }
+
+/**
+ * Raw export/import of a folder DEK.
+ *
+ * Used only to keep a signed-in session alive across page reloads: the raw key
+ * is immediately sealed with the device key (AES-GCM) before it is stored, so
+ * what lands in IndexedDB is ciphertext, never the key itself.
+ */
+export async function exportRawKey(key: CryptoKey): Promise<string> {
+  return toBase64(await crypto.subtle.exportKey("raw", key));
+}
+
+export async function importRawKey(raw: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey("raw", fromBase64(raw) as BufferSource, { name: "AES-GCM", length: 256 }, true, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
