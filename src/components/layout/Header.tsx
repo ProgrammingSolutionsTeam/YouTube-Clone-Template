@@ -28,7 +28,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const [active, setActive] = useState(-1);
   const navigate = useNavigate();
   const { t } = useSession();
-  const boxRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLElement | null>(null);
 
   /* live suggestions, debounced so typing never blocks the UI */
   useEffect(() => {
@@ -101,7 +101,8 @@ export function Header({ onMenuToggle }: HeaderProps) {
     }
   };
 
-  const SearchField = ({ autoFocus = false }: { autoFocus?: boolean }) => (
+  // plain render helpers (not components) so the input keeps focus while typing
+  const searchField = (autoFocus = false) => (
     <Input
       autoFocus={autoFocus}
       value={query}
@@ -117,7 +118,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
     />
   );
 
-  const Suggestions = () =>
+  const suggestionList = () =>
     open && suggestions.length > 0 ? (
       <ul className="absolute inset-x-0 top-11 z-50 max-h-80 overflow-auto rounded-xl border border-border bg-popover p-1 shadow-lg">
         {suggestions.map((s, index) => (
@@ -155,15 +156,15 @@ export function Header({ onMenuToggle }: HeaderProps) {
   return (
     <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center gap-2 border-b border-youtube-border bg-background/95 px-2 backdrop-blur sm:px-4">
       {mobileSearch ? (
-        <form onSubmit={submit} className="relative flex w-full items-center gap-2 md:hidden" ref={boxRef}>
+        <form onSubmit={submit} className="relative flex w-full items-center gap-2 md:hidden" ref={(node) => { boxRef.current = node; }}>
           <Button type="button" variant="ghost" size="icon" onClick={() => setMobileSearch(false)}>
             <X className="h-5 w-5" />
           </Button>
-          <SearchField autoFocus />
+          {searchField(true)}
           <Button type="submit" size="icon" variant="ghost">
             <Search className="h-5 w-5" />
           </Button>
-          <Suggestions />
+          {suggestionList()}
         </form>
       ) : (
         <>
@@ -181,13 +182,13 @@ export function Header({ onMenuToggle }: HeaderProps) {
             <span className="hidden xs:inline">{t("app.name")}</span>
           </button>
 
-          <div className="mx-auto hidden w-full max-w-xl md:block" ref={boxRef}>
+          <div className="mx-auto hidden w-full max-w-xl md:block" ref={(node) => { boxRef.current = node; }}>
             <form onSubmit={submit} className="relative flex items-center gap-2">
-              <SearchField />
+              {searchField()}
               <Button type="submit" size="icon" variant="secondary" className="shrink-0 rounded-full">
                 <Search className="h-4 w-4" />
               </Button>
-              <Suggestions />
+              {suggestionList()}
             </form>
           </div>
 
