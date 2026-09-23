@@ -401,6 +401,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const kek = await deriveKek(password, fromBase64(record.kekSalt));
       const dek = await unwrapDek(record.wrappedDek, kek);
       sessionKeyCache.set(record.slug, dek);
+      const { secret, salt } = deviceSecret();
+      await rememberKey(record.slug, dek, await deriveDeviceKey(secret, salt));
       await users.put({ ...record, lastLoginAt: Date.now() });
       await sessionStore.set(record.slug, sessionId());
       setUser(toPublic(record));
@@ -410,13 +412,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    if (user) sessionKeyCache.delete(user.slug);
+    if (user) {
+      sessionKeyCache.delete(user.slug);
+      await forgetKey(user.slug);
+    }
     setUser(null);
     await sessionStore.set(null, sessionId());
     const { secret, salt } = deviceSecret();
     const deviceKey = await deriveDeviceKey(secret, salt);
     await loadProfile(`sessions/${sessionId()}`, deviceKey);
   }, [loadProfile, user]);
+
 
   const updateAccount = useCallback(
     async ({
