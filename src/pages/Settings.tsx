@@ -40,6 +40,7 @@ import { pickDirectory, supportsDirectoryPicker, ensurePermission, handlePermiss
 import { rootsStore, resetIndex } from "@/lib/core/indexdb";
 import { randomId } from "@/lib/core/ids";
 import { scanner } from "@/lib/scanner/scanner";
+import { scanFileList } from "@/lib/scanner/fileListScanner";
 import { invalidateLibrary, libraryStats } from "@/lib/media/library";
 import type { RootRecord, ScanProgress } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,10 @@ const Settings = () => {
   const [rootKey, setRootKey] = useState("");
   const [displayPath, setDisplayPath] = useState("");
   const [handle, setHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [pickedFiles, setPickedFiles] = useState<File[]>([]);
+  const [rescanTarget, setRescanTarget] = useState<RootRecord | null>(null);
+  const rescanInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<ScanProgress | null>(null);
   const [stats, setStats] = useState<{ items: number; roots: number; channels: number } | null>(null);
 
@@ -98,9 +103,21 @@ const Settings = () => {
     }
   };
 
+  /** Fallback picker: a plain folder input, supported by every browser. */
+  const pickFiles = (list: FileList | null) => {
+    const files = list ? Array.from(list) : [];
+    if (!files.length) return;
+    setPickedFiles(files);
+    setHandle(null);
+    const folderName =
+      (files[0] as File & { webkitRelativePath?: string }).webkitRelativePath?.split("/")[0] ?? "folder";
+    if (!displayPath) setDisplayPath(folderName);
+    if (!rootKey) setRootKey(folderName.replace(/[^\p{L}\p{N}_-]/gu, "").slice(0, 12) || "root");
+  };
+
   const addRoot = async () => {
     const key = rootKey.trim();
-    if (!key || !handle) {
+    if (!key || (!handle && pickedFiles.length === 0)) {
       toast({ title: t("roots.pickFirst"), variant: "destructive" });
       return;
     }
@@ -111,21 +128,47 @@ const Settings = () => {
     const record: RootRecord = {
       id: randomId(),
       name: key,
-      displayPath: displayPath.trim() || handle.name,
-      handle,
+      displayPath: displayPath.trim() || handle?.name || "folder",
+      source: handle ? "handle" : "files",
+      handle: handle ?? undefined,
       createdAt: Date.now(),
     };
     await rootsStore.put(record);
     invalidateLibrary();
+    const files = pickedFiles;
     setRootKey("");
     setDisplayPath("");
     setHandle(null);
-    await refresh();
+    setPickedFiles([]);
     toast({ title: t("roots.added"), description: `root=${key}` });
-    void scanner.enqueue(record, "full", settings.scanner.deepDetect).then(refresh);
+
+    if (record.handle) {
+      void scanner.enqueue(record, "full", settings.scanner.deepDetect).then(refresh);
+    } else {
+      await scanFileList(record, files);
+      invalidateLibrary();
+      await rootsStore.put({ ...record, lastScanAt: Date.now(), itemCount: files.length });
+    }
+    await refresh();
+  };
+
+  /** Re-picking the same folder refreshes the cached files of a fallback root. */
+  const refreshFilesRoot = async (root: RootRecord, list: FileList | null) => {
+    const files = list ? Array.from(list) : [];
+    if (!files.length) return;
+    await scanFileList(root, files);
+    await rootsStore.put({ ...root, lastScanAt: Date.now(), itemCount: files.length });
+    invalidateLibrary();
+    await refresh();
   };
 
   const rescan = async (root: RootRecord) => {
+    if (!root.handle) {
+      toast({ title: t("roots.reselect") });
+      rescanInputRef.current?.click();
+      setRescanTarget(root);
+      return;
+    }
     if (!(await ensurePermission(root.handle))) {
       toast({ title: t("roots.needsGrant"), variant: "destructive" });
       return;
@@ -316,14 +359,47 @@ const Settings = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button variant="outline" onClick={() => void pick()} className="flex-1 sm:flex-none">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  {supportsDirectoryPicker() && (
+                    <Button variant="outline" onClick={() => void pick()} className="flex-1 sm:flex-none">
+                      <FolderOpen className="me-2 h-4 w-4" />
+                      {t("common.browseFolder")}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 sm:flex-none"
+                  >
                     <FolderOpen className="me-2 h-4 w-4" />
-                    {t("common.browseFolder")}
+                    {t("roots.filesMode")}
                   </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    hidden
+                    {...({ webkitdirectory: "true", directory: "true" } as Record<string, string>)}
+                    onChange={(e) => {
+                      pickFiles(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                  <input
+                    ref={rescanInputRef}
+                    type="file"
+                    multiple
+                    hidden
+                    {...({ webkitdirectory: "true", directory: "true" } as Record<string, string>)}
+                    onChange={(e) => {
+                      if (rescanTarget) void refreshFilesRoot(rescanTarget, e.target.files);
+                      setRescanTarget(null);
+                      e.target.value = "";
+                    }}
+                  />
                   <Button
                     onClick={() => void addRoot()}
-                    disabled={!handle}
+                    disabled={!handle && pickedFiles.length === 0}
                     className="flex-1 bg-youtube-red hover:bg-youtube-red/90 sm:flex-none"
                   >
                     <Plus className="me-2 h-4 w-4" />
@@ -334,12 +410,18 @@ const Settings = () => {
                       {t("roots.granted")}: {handle.name}
                     </Badge>
                   )}
+                  {!handle && pickedFiles.length > 0 && (
+                    <Badge variant="secondary" className="self-center">
+                      {pickedFiles.length} {t("roots.filesPicked")}
+                    </Badge>
+                  )}
                 </div>
 
                 <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
                   <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   {t("roots.pickFirst")}
                 </p>
+                <p className="text-xs text-muted-foreground">{t("roots.filesHint")}</p>
 
                 {progress && progress.state === "scanning" && (
                   <div className="rounded-lg bg-secondary/60 p-3 text-xs">
