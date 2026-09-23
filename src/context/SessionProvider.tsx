@@ -383,6 +383,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       );
 
       sessionKeyCache.set(slug, dek);
+      await rememberKey(slug, dek, deviceKey);
       await sessionStore.set(slug, sessionId());
       setUser(toPublic(record));
       setAccountCount(await users.count());
