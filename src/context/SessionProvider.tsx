@@ -124,6 +124,35 @@ function sessionId(): string {
   return id;
 }
 
+/**
+ * Keeps a signed-in session alive across reloads.
+ *
+ * The folder key is sealed with the device key and stored inside the vault at
+ * `unlock/<slug>/dek.json`. A reload can reopen it (same device, same browser
+ * profile); anyone copying the database without the browser's local device
+ * secret cannot.
+ */
+const UNLOCK_FILE = "dek.json";
+const unlockFolder = (slug: string) => `unlock/${slug}`;
+
+async function rememberKey(slug: string, dek: CryptoKey, deviceKey: CryptoKey): Promise<void> {
+  await writeSealed(unlockFolder(slug), UNLOCK_FILE, deviceKey, { raw: await exportRawKey(dek) });
+}
+
+async function recallKey(slug: string, deviceKey: CryptoKey): Promise<CryptoKey | null> {
+  const stored = await readSealed<{ raw: string }>(unlockFolder(slug), UNLOCK_FILE, deviceKey);
+  if (!stored?.raw) return null;
+  try {
+    return await importRawKey(stored.raw);
+  } catch {
+    return null;
+  }
+}
+
+async function forgetKey(slug: string): Promise<void> {
+  await vaultFiles.removeFolder(unlockFolder(slug));
+}
+
 function applyAppearance(settings: AppSettings) {
   const root = document.documentElement;
   const accent = ACCENTS.find((a) => a.key === settings.accent) ?? ACCENTS[0];
