@@ -71,7 +71,7 @@ export function VideoCard({
       <div className={cn("flex min-w-0 gap-3", compact ? "flex-1" : "mt-3")}>
         {!compact && (
           <Avatar className="h-9 w-9 shrink-0">
-            <AvatarImage src={channelAvatar} alt={channel} />
+            <AvatarImage src={channelAvatar} alt={channelName} />
             <AvatarFallback className="text-xs">
               {channelName.slice(0, 2)}
             </AvatarFallback>
