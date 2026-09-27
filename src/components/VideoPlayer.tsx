@@ -59,7 +59,7 @@ export function VideoPlayer({ videoId }: VideoPlayerProps) {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={video.channelAvatar} />
+              <AvatarImage src={video.channelAvatar} alt={video.channelName} />
               <AvatarFallback>{video.channelName.slice(0, 2)}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
