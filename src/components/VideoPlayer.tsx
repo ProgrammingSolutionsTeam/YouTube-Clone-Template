@@ -93,6 +93,7 @@ export function VideoPlayer({ videoId }: VideoPlayerProps) {
                 size="sm"
                 onClick={() => setReaction(reaction === "dislike" ? null : "dislike")}
                 className="rounded-full"
+                aria-label="عدم الإعجاب"
               >
                 <ThumbsDown className={cn("h-4 w-4", reaction === "dislike" && "text-youtube-red")} />
               </Button>
