@@ -15,6 +15,7 @@ import Auth from "./pages/Auth";
 import Browse from "./pages/Browse";
 import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
+import { RouteMeta } from "@/components/RouteMeta";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RouteMeta />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/watch/:videoId" element={<Watch />} />
