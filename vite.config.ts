@@ -4,6 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import fs from "node:fs";
 import type { Plugin } from "vite";
+import { localTubeShare } from "./server/sharePlugin";
 
 function localFfmpegCore(): Plugin {
   const files = {
@@ -34,7 +35,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [react(), localFfmpegCore(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), localFfmpegCore(), localTubeShare(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
