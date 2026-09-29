@@ -17,7 +17,7 @@ export interface RootRecord {
    *  - "files": folder input fallback (Firefox/Safari), the picked File objects
    *    are stored locally and re-picking the folder refreshes them.
    */
-  source?: "handle" | "files";
+  source?: "handle" | "files" | "network";
   /** the granted directory handle — only reachable from this browser profile */
   handle?: FileSystemDirectoryHandle;
   createdAt: number;
