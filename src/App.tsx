@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useSearchParams } from "react-router-dom";
+import { PlayerProvider } from "@/context/PlayerProvider";
 import { SessionProvider } from "@/context/SessionProvider";
 import Index from "./pages/Index";
 import Watch from "./pages/Watch";
@@ -19,6 +20,12 @@ import { RouteMeta } from "@/components/RouteMeta";
 
 const queryClient = new QueryClient();
 
+/** `/?v=<id>` opens the player, plain `/` is the home grid. */
+const Home = () => {
+  const [params] = useSearchParams();
+  return params.get("v") ? <Watch /> : <Index />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <SessionProvider>
@@ -26,9 +33,10 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <PlayerProvider>
           <RouteMeta />
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Home />} />
             <Route path="/watch/:videoId" element={<Watch />} />
             <Route path="/watch" element={<Watch />} />
             <Route path="/settings" element={<Settings />} />
@@ -45,6 +53,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </PlayerProvider>
         </BrowserRouter>
       </TooltipProvider>
     </SessionProvider>
