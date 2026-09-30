@@ -9,6 +9,7 @@
 import { channelsStore, itemsStore, rootsStore, STORE, getAll } from "../core/indexdb";
 import type { MediaItem, RootRecord } from "../core/types";
 import type { MediaLocation } from "../core/paths";
+import { networkLibrary } from "../share/network";
 
 let cache: { at: number; items: MediaItem[] } | null = null;
 
@@ -18,22 +19,24 @@ export function invalidateLibrary(): void {
 
 export async function allItems(): Promise<MediaItem[]> {
   if (cache && Date.now() - cache.at < 4000) return cache.items;
-  const items = await getAll<MediaItem>(STORE.items);
+  const [local, network] = await Promise.all([getAll<MediaItem>(STORE.items), networkLibrary()]);
+  const items = [...local, ...network.items];
   cache = { at: Date.now(), items };
   return items;
 }
 
 export async function listRoots(): Promise<RootRecord[]> {
-  return rootsStore.all();
+  const [local, network] = await Promise.all([rootsStore.all(), networkLibrary()]);
+  return [...local, ...network.roots];
 }
 
 export async function rootByKey(key: string): Promise<RootRecord | undefined> {
-  const roots = await rootsStore.all();
+  const roots = await listRoots();
   return roots.find((r) => r.name.toLowerCase() === key.toLowerCase());
 }
 
 export async function rootKeyMap(): Promise<Map<string, string>> {
-  const roots = await rootsStore.all();
+  const roots = await listRoots();
   return new Map(roots.map((r) => [r.id, r.name]));
 }
 
@@ -157,7 +160,7 @@ export function adjacentItems(items: MediaItem[], currentId: string) {
 export async function listChannels(): Promise<
   { rootKey: string; name: string; segments: string[]; itemCount: number; playlistCount: number; posterItemId?: string; lastModifiedAt: number }[]
 > {
-  const roots = await rootsStore.all();
+  const roots = await listRoots();
   const items = await allItems();
   const byKey = new Map<string, { rootKey: string; name: string; segments: string[]; itemCount: number; playlistCount: number; posterItemId?: string; lastModifiedAt: number }>();
   const playlists = new Map<string, Set<string>>();
@@ -233,5 +236,5 @@ export async function libraryStats(): Promise<{ items: number; roots: number; ch
 }
 
 export async function getItemById(id: string): Promise<MediaItem | null> {
-  return (await itemsStore.get(id)) ?? null;
+  return (await itemsStore.get(id)) ?? (await allItems()).find((i) => i.id === id) ?? null;
 }

@@ -15,6 +15,8 @@ import { thumbnailUrl, openPlayback } from "@/lib/media/mediaService";
 import { subscribeThumbnail } from "@/lib/media/thumbnailQueue";
 import { formatDuration, formatSize, timeAgo } from "@/lib/format";
 import { useSession } from "@/context/SessionProvider";
+import { usePlayer } from "@/context/PlayerProvider";
+import { ShareDialog } from "@/components/media/ShareDialog";
 
 export function MediaCard({
   item,
@@ -28,6 +30,8 @@ export function MediaCard({
   const { settings, favorites, watchLater, history, toggleFavorite, toggleWatchLater, t } = useSession();
   const [thumb, setThumb] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const { item: playingItem } = usePlayer();
+  const [shareOpen, setShareOpen] = useState(false);
   const hoverTimer = useRef<number | null>(null);
   const releasePreview = useRef<(() => void) | null>(null);
   const location = locationOf(item, rootKey);
@@ -74,7 +78,7 @@ export function MediaCard({
   );
 
   const startPreview = () => {
-    if (item.kind !== "video" || !item.directPlay || preview || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (item.kind !== "video" || !item.directPlay || preview || playingItem || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     hoverTimer.current = window.setTimeout(() => {
       openPlayback(item)
         .then((opened) => {
@@ -104,7 +108,7 @@ export function MediaCard({
       <Link
         to={watchHref(location)}
         className={cn(
-          "relative aspect-video shrink-0 overflow-hidden rounded-xl bg-secondary shadow-[var(--shadow-card)]",
+          "relative aspect-video shrink-0 overflow-hidden rounded-xl bg-secondary shadow-[var(--shadow-card)] ring-1 ring-transparent transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-xl group-hover:ring-youtube-red/40",
           compact ? "w-36 sm:w-40" : "w-full",
         )}
       >
@@ -176,11 +180,7 @@ export function MediaCard({
                 {isFavorite ? t("player.unfavorite") : t("player.favorite")}
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
-                  void navigator.clipboard
-                    .writeText(`${window.location.origin}${watchHref(location)}`)
-                    .catch(() => undefined);
-                }}
+                onClick={() => setShareOpen(true)}
               >
                 <Share2 className="me-2 h-4 w-4" />
                 {t("watch.share")}
@@ -197,6 +197,7 @@ export function MediaCard({
           {timeAgo(item.fileModifiedAt, settings.language)}
         </p>
       </div>
+      <ShareDialog item={item} open={shareOpen} onOpenChange={setShareOpen} />
     </article>
   );
 }

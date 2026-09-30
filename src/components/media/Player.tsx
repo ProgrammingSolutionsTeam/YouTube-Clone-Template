@@ -38,6 +38,7 @@ import {
   RectangleHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ShareDialog } from "@/components/media/ShareDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,13 +78,16 @@ export function Player({
   onTheaterToggle,
   onNext,
   onPrevious,
+  mini = false,
 }: {
   item: MediaItem;
+  mini?: boolean;
   onEnded?: () => void;
   theater: boolean;
   onTheaterToggle: () => void;
   onNext?: () => void;
   onPrevious?: () => void;
+  mini?: boolean;
 }) {
   const { settings, favorites, watchLater, toggleFavorite, toggleWatchLater, recordWatch, updateSettings, t } =
     useSession();
@@ -93,6 +97,9 @@ export function Player({
   const mediaRef = useRef<HTMLVideoElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
   const hideTimer = useRef<number | null>(null);
+  const miniRef = useRef(mini);
+  miniRef.current = mini;
+  const [shareOpen, setShareOpen] = useState(false);
   const tapTimer = useRef<number | null>(null);
 
   const [source, setSource] = useState<Source | null>(null);
@@ -390,15 +397,7 @@ export function Player({
     }
   };
 
-  const share = async () => {
-    const url = `${window.location.origin}${watchHref(location)}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      toast({ title: t("watch.copied"), description: url });
-    } catch {
-      toast({ title: url });
-    }
-  };
+  const share = () => setShareOpen(true);
 
   const changeSpeed = (value: number) => {
     setSpeed(value);
@@ -408,6 +407,7 @@ export function Player({
   /* -------------------------------------------------------- keyboard keys */
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (miniRef.current || event.defaultPrevented) return;
       const target = event.target as HTMLElement | null;
       if (target && /input|textarea|select/i.test(target.tagName)) return;
       const key = event.key.toLowerCase();
@@ -508,7 +508,7 @@ export function Player({
         onPointerLeave={() => playing && setChromeVisible(false)}
         className={cn(
           "group relative w-full overflow-hidden bg-black sm:rounded-xl",
-          fullscreen ? "h-screen" : theater ? "aspect-[21/9] max-h-[80vh]" : "aspect-video",
+          fullscreen ? "h-screen" : theater && !mini ? "aspect-[21/9] max-h-[80vh]" : "aspect-video",
           !chromeVisible && "cursor-none",
         )}
       >
@@ -619,10 +619,17 @@ export function Player({
               </button>
             )}
 
+            {mini && (
+              <div className="absolute inset-x-0 bottom-0 h-1 bg-white/25">
+                <div className="h-full bg-youtube-red" style={{ width: `${duration ? (time / duration) * 100 : 0}%` }} />
+              </div>
+            )}
+
             {/* ------------------------------------------------ control bar */}
             <div
               className={cn(
                 "absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-2 pb-1.5 pt-8 transition-opacity duration-200 sm:px-3",
+                mini && "hidden",
                 chromeVisible ? "opacity-100" : "pointer-events-none opacity-0",
               )}
             >
@@ -831,7 +838,7 @@ export function Player({
       </div>
 
       {/* quick actions under the player (mobile friendly) */}
-      <div className="mt-3 flex items-center gap-2 px-3 sm:px-0 lg:hidden">
+      <div className={cn("mt-3 flex items-center gap-2 px-3 sm:px-0 lg:hidden", mini && "hidden")}>
         <Button
           variant={isFavorite ? "default" : "secondary"}
           size="sm"
@@ -858,6 +865,7 @@ export function Player({
           <Download className="h-4 w-4" />
         </Button>
       </div>
+      <ShareDialog item={item} open={shareOpen} onOpenChange={setShareOpen} />
     </div>
   );
 }

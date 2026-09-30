@@ -247,6 +247,32 @@ const D: Dict = {
   "stats.items": { ar: "عنصر", en: "items" },
   "stats.channels": { ar: "قناة", en: "channels" },
   "stats.roots": { ar: "جذر", en: "roots" },
+  "mini.expand": { ar: "فتح المشغل الكامل", en: "Open full player" },
+  "mini.close": { ar: "إغلاق المشغل المصغر", en: "Close mini player" },
+  "share.title": { ar: "مشاركة المقطع", en: "Share video" },
+  "share.email": { ar: "البريد", en: "Email" },
+  "share.more": { ar: "المزيد", en: "More" },
+  "share.lanHint": {
+    ar: "الرابط يعمل لكل من هم على نفس الشبكة ما دام التطبيق يعمل على هذا الجهاز.",
+    en: "The link works for anyone on the same network while LocalTube runs on this device.",
+  },
+  "net.title": { ar: "المشاركة على الشبكة", en: "Network sharing" },
+  "net.desc": {
+    ar: "الجذور المشاركة تظهر لكل من يفتح التطبيق من شبكتك، حتى بدون حساب. تُقرأ الملفات مباشرة من هذا الجهاز.",
+    en: "Shared roots appear for everyone who opens the app on your network, even without an account. Files stream straight from this device.",
+  },
+  "net.addresses": { ar: "عناوين هذا الجهاز على الشبكة", en: "This device on the network" },
+  "net.none": { ar: "المشاركة متاحة فقط عند تشغيل التطبيق على جهازك (npm run dev).", en: "Sharing is available when the app runs on your own machine (npm run dev)." },
+  "net.managed": { ar: "لا يمكن إدارة المشاركة إلا من نفس الجهاز الذي يشغّل التطبيق.", en: "Shares can only be managed from the machine running the app." },
+  "net.pathLabel": { ar: "المسار الكامل للمجلد على هذا الجهاز", en: "Full folder path on this machine" },
+  "net.share": { ar: "مشاركة على الشبكة", en: "Share on network" },
+  "net.shared": { ar: "تمت المشاركة", en: "Shared" },
+  "net.stop": { ar: "إيقاف المشاركة", en: "Stop sharing" },
+  "net.error": { ar: "تعذّرت المشاركة: تأكد أن المسار مجلد موجود", en: "Could not share: make sure the path is an existing folder" },
+  "net.peers": { ar: "أجهزة أخرى في الشبكة", en: "Other devices on the network" },
+  "net.peersHint": { ar: "أضف عنوان جهاز صديق، مثال 192.168.1.20:8080 لتظهر جذوره المشتركة هنا.", en: "Add a friend's address, e.g. 192.168.1.20:8080, to see their shared roots here." },
+  "net.add": { ar: "إضافة", en: "Add" },
+  "net.badge": { ar: "شبكة", en: "Network" },
 };
 
 

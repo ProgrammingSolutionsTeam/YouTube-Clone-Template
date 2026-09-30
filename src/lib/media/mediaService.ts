@@ -16,6 +16,7 @@ import { canBrowserProbablyPlay, guessMime } from "../core/formats";
 import { decodeSubtitle, subtitleFormat, toVtt } from "../core/subtitles";
 import { log } from "../core/logger";
 import type { MediaItem, SubtitleRecord } from "../core/types";
+import { isNetworkItem, networkFileUrl, networkLibrary, patchNetworkItem } from "../share/network";
 
 export class MediaAccessError extends Error {
   constructor(public code: "not_found" | "permission" | "unreadable" | "unavailable", public detail?: unknown) {
@@ -32,6 +33,10 @@ export async function getItem(id: string): Promise<MediaItem | null> {
   if (resolved !== id) {
     const aliased = await itemsStore.get(resolved);
     if (aliased) return aliased;
+  }
+  if (id.startsWith("n")) {
+    const network = await networkLibrary();
+    return network.items.find((i) => i.id === id) ?? null;
   }
   return null;
 }
@@ -72,6 +77,16 @@ export interface PlaybackSource {
  * variant. `directPlay` reports whether the browser can decode this container.
  */
 export async function openPlayback(item: MediaItem, qualityId?: string): Promise<PlaybackSource> {
+  if (isNetworkItem(item)) {
+    return {
+      url: networkFileUrl(item),
+      mimeType: item.mimeType,
+      fileName: item.fileName,
+      size: item.size,
+      directPlay: item.directPlay,
+      release: () => undefined,
+    };
+  }
   const variant = qualityId ? item.qualities.find((q) => q.id === qualityId) : undefined;
   const file = await fileFor(item, variant?.fileName);
   const mimeType = file.type || guessMime(item.kind, item.extension);
@@ -110,6 +125,15 @@ export async function downloadSubtitle(item: MediaItem, subtitleId: string): Pro
 }
 
 export async function downloadMedia(item: MediaItem, qualityId?: string): Promise<void> {
+  if (isNetworkItem(item)) {
+    const anchor = document.createElement("a");
+    anchor.href = networkFileUrl(item);
+    anchor.download = item.fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    return;
+  }
   const variant = qualityId ? item.qualities.find((q) => q.id === qualityId) : undefined;
   const file = await fileFor(item, variant?.fileName);
   triggerDownload(file, file.name);
@@ -145,14 +169,15 @@ export interface ProbeResult {
  * The original file is never written to; the poster lives in the local cache.
  */
 export async function probeItem(item: MediaItem, options: { thumbnail?: boolean } = {}): Promise<ProbeResult> {
-  let file: File;
+  const remote = isNetworkItem(item);
+  let file: { size: number } = { size: item.size };
   try {
-    file = await fileFor(item);
+    if (!remote) file = await fileFor(item);
   } catch (error) {
     return { error: error instanceof MediaAccessError ? error.code : String(error) };
   }
 
-  const url = URL.createObjectURL(file);
+  const url = remote ? networkFileUrl(item) : URL.createObjectURL(file as File);
   const element = document.createElement(item.kind === "audio" ? "audio" : "video");
   element.preload = "metadata";
   element.muted = true;
@@ -161,7 +186,7 @@ export async function probeItem(item: MediaItem, options: { thumbnail?: boolean 
   const cleanup = () => {
     element.removeAttribute("src");
     element.load();
-    URL.revokeObjectURL(url);
+    if (!remote) URL.revokeObjectURL(url);
   };
 
   try {
@@ -244,7 +269,8 @@ export async function saveProbe(item: MediaItem, probe: ProbeResult): Promise<Me
     probeError: probe.error,
     directPlay: probe.error === "decode_unsupported" ? false : item.directPlay,
   };
-  await itemsStore.put(updated);
+  if (isNetworkItem(item)) patchNetworkItem(updated);
+  else await itemsStore.put(updated);
   return updated;
 }
 

@@ -1,3 +1,4 @@
+import { NetworkShareCard } from "@/components/settings/NetworkShareCard";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppLayout, PageHeading } from "@/components/layout/AppLayout";
@@ -325,6 +326,7 @@ const Settings = () => {
 
           {/* ------------------------------------------------------- roots */}
           <TabsContent value="roots" className="space-y-4">
+            <NetworkShareCard localRoots={roots} />
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
