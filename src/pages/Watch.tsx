@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Player } from "@/components/media/Player";
+import { usePlayer } from "@/context/PlayerProvider";
 import { MediaCard } from "@/components/media/MediaCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/context/SessionProvider";
-import { browseHref, locationVars, parseQuery, watchHref } from "@/lib/core/paths";
+import { browseHref, locationVars, parseQuery } from "@/lib/core/paths";
 import { getItem } from "@/lib/media/mediaService";
 import { adjacentItems, listLocation, locationOf } from "@/lib/media/library";
 import { formatSize, formatDuration } from "@/lib/format";
@@ -24,7 +24,7 @@ const Watch = () => {
   const [item, setItem] = useState<MediaItem | null>(null);
   const [siblings, setSiblings] = useState<MediaItem[]>([]);
   const [missing, setMissing] = useState(false);
-  const [theater, setTheater] = useState(false);
+  const { theater, play, setAnchor, item: playing } = usePlayer();
 
   useEffect(() => {
     let alive = true;
@@ -35,28 +35,20 @@ const Watch = () => {
       if (!alive) return;
       if (!found) return setMissing(true);
       setItem(found);
+      document.title = `${found.title} — LocalTube`;
       const listing = await listLocation(found.rootName, found.dirPath);
-      if (alive) setSiblings(adjacentItems(listing.items, found.id).ordered);
+      if (!alive) return;
+      const ordered = adjacentItems(listing.items, found.id).ordered;
+      setSiblings(ordered);
+      play(found, ordered);
     })().catch(() => alive && setMissing(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => {
       alive = false;
     };
   }, [id]);
 
   const location = useMemo(() => (item ? locationOf(item) : parseQuery(params)), [item, params]);
-
-  const adjacent = useMemo(() => adjacentItems(siblings, id), [id, siblings]);
-
-  const playNext = () => {
-    const next = adjacent.next;
-    if (next) navigate(watchHref(locationOf(next)));
-  };
-
-  const playPrevious = () => {
-    const previous = adjacent.previous;
-    if (previous) navigate(watchHref(locationOf(previous)));
-  };
-
 
   if (missing) {
     return (
@@ -81,16 +73,8 @@ const Watch = () => {
         }
       >
         <div className="min-w-0 flex-1">
-          {item ? (
-            <Player
-              item={item}
-              theater={theater}
-              onTheaterToggle={() => setTheater((v) => !v)}
-              onEnded={playNext}
-              onNext={adjacent.next ? playNext : undefined}
-              onPrevious={adjacent.previous ? playPrevious : undefined}
-            />
-
+          {item && playing?.id === item.id ? (
+            <div ref={setAnchor} className="w-full" />
           ) : (
             <div className="aspect-video w-full animate-pulse bg-secondary sm:rounded-xl" />
           )}
