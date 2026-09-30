@@ -49,8 +49,9 @@ export function browseHref(location: MediaLocation): string {
   return `/browse?${buildQuery({ ...location, videoId: undefined })}`;
 }
 
+/** Short, path-free link: `/?v=<opaqueId>`. The id is resolved back to its file only inside the app. */
 export function watchHref(location: MediaLocation): string {
-  return `/watch?${buildQuery(location)}`;
+  return location.videoId ? `/?v=${encodeURIComponent(location.videoId)}` : browseHref(location);
 }
 
 /** Human readable trail, e.g. `F / aj+ / s01`. */
