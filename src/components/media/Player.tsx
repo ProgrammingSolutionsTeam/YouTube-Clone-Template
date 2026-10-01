@@ -87,7 +87,6 @@ export function Player({
   onTheaterToggle: () => void;
   onNext?: () => void;
   onPrevious?: () => void;
-  mini?: boolean;
 }) {
   const { settings, favorites, watchLater, toggleFavorite, toggleWatchLater, recordWatch, updateSettings, t } =
     useSession();
