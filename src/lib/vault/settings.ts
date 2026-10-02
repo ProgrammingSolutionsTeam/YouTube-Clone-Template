@@ -47,7 +47,6 @@ export interface ShortsSettings {
   showInfo: boolean;
   preloadNext: boolean;
   holdToPause: boolean;
-  wheelNavigation: boolean;
 }
 
 export const EQ_FREQUENCIES = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
@@ -183,7 +182,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
     showInfo: true,
     preloadNext: true,
     holdToPause: true,
-    wheelNavigation: true,
   },
   pinnedChannels: [],
 };
