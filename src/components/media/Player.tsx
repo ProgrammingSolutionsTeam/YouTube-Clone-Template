@@ -59,6 +59,8 @@ import type { MediaItem } from "@/lib/core/types";
 import { locationOf } from "@/lib/media/library";
 import { watchHref } from "@/lib/core/paths";
 import { downloadMedia, openPlayback, openSubtitle, probeItem, saveProbe } from "@/lib/media/mediaService";
+import { applyAudio, resumeAudio } from "@/lib/media/audioEngine";
+import { EQ_PRESETS } from "@/lib/vault/settings";
 import { openFallback, releaseEngine, type TranscodeStatus } from "@/lib/media/transcoder";
 
 const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
@@ -230,11 +232,56 @@ export function Player({
   useEffect(() => {
     const media = mediaRef.current;
     if (!media) return;
-    media.volume = volume;
+    media.volume = Math.min(1, volume);
     media.muted = muted;
     media.playbackRate = speed;
     media.loop = loop;
   }, [loop, muted, source, speed, volume]);
+
+  /* ----------------------------------------------- equalizer + 200% boost */
+  const p = settings.player;
+  useEffect(() => {
+    applyAudio(mediaRef.current, {
+      enabled: p.eqEnabled,
+      bands: p.eqBands,
+      boost: Math.min(2, Math.max(1, volume) * (p.boost || 1)),
+      limiter: p.limiter,
+    });
+  }, [source, volume, p.eqEnabled, p.eqBands, p.boost, p.limiter]);
+
+  /* ---------------------------------------------- background play + OS */
+  useEffect(() => {
+    const onHidden = () => {
+      const media = mediaRef.current;
+      if (!media) return;
+      if (document.hidden && !p.backgroundPlay && document.pictureInPictureElement !== media) media.pause();
+    };
+    document.addEventListener("visibilitychange", onHidden);
+    return () => document.removeEventListener("visibilitychange", onHidden);
+  }, [p.backgroundPlay]);
+
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    const ms = navigator.mediaSession;
+    try {
+      ms.metadata = new MediaMetadata({ title: item.title, artist: item.channel || item.rootName, album: "LocalTube" });
+      const set = (action: MediaSessionAction, handler: MediaSessionActionHandler | null) => {
+        try {
+          ms.setActionHandler(action, handler);
+        } catch {
+          /* unsupported action */
+        }
+      };
+      set("play", () => void mediaRef.current?.play().catch(() => undefined));
+      set("pause", () => mediaRef.current?.pause());
+      set("seekbackward", () => mediaRef.current && (mediaRef.current.currentTime -= seekStep));
+      set("seekforward", () => mediaRef.current && (mediaRef.current.currentTime += seekStep));
+      set("previoustrack", onPrevious ?? null);
+      set("nexttrack", onNext ?? null);
+    } catch {
+      /* ignore */
+    }
+  }, [item, onNext, onPrevious, seekStep]);
 
   useEffect(() => {
     if (item.probed) return;
@@ -417,7 +464,7 @@ export function Player({
       if (key === " " || key === "k") return handled(), togglePlay();
       if (key === "arrowright" || key === "l") return handled(), nudge(key === "l" ? 10 : seekStep);
       if (key === "arrowleft" || key === "j") return handled(), nudge(key === "j" ? -10 : -seekStep);
-      if (key === "arrowup") return handled(), applyVolume(Math.min(1, Number((volume + 0.05).toFixed(2))));
+      if (key === "arrowup") return handled(), applyVolume(Math.min(2, Number((volume + 0.05).toFixed(2))));
       if (key === "arrowdown") return handled(), applyVolume(Math.max(0, Number((volume - 0.05).toFixed(2))));
       if (key === "m") return handled(), toggleMute();
       if (key === "f") return handled(), void toggleFullscreen();
@@ -536,6 +583,7 @@ export function Player({
                 onProgress={onTimeUpdate}
                 onDurationChange={onLoaded}
                 onPlay={() => {
+                  resumeAudio();
                   setPlaying(true);
                   showChrome();
                 }}
@@ -689,15 +737,18 @@ export function Player({
                   <IconButton label={muted ? t("player.unmute") : t("player.mute")} onClick={toggleMute}>
                     <VolumeIcon className="h-5 w-5" />
                   </IconButton>
-                  <div className="w-0 overflow-hidden transition-all duration-200 group-hover/vol:w-20 focus-within:w-20">
+                  <div className="flex w-0 items-center overflow-hidden transition-all duration-200 group-hover/vol:w-[7.5rem] focus-within:w-[7.5rem]">
                     <Slider
                       value={[muted ? 0 : Math.round(volume * 100)]}
-                      max={100}
+                      max={200}
                       step={1}
                       onValueChange={([value]) => applyVolume(value / 100)}
                       className="mx-2 w-16"
                       aria-label={t("player.volume")}
                     />
+                    <span className={cn("w-9 text-[10px] tabular-nums", volume > 1 && "text-youtube-red")} dir="ltr">
+                      {Math.round((muted ? 0 : volume) * 100)}%
+                    </span>
                   </div>
                 </div>
 
@@ -726,6 +777,33 @@ export function Player({
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" side="top" className="w-56">
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Music2 className="me-2 h-4 w-4" />
+                          {t("eq.title")}
+                          <span className="ms-auto text-xs text-muted-foreground">
+                            {p.eqEnabled ? t(`eq.preset.${p.eqPreset}`) : t("eq.off")}
+                          </span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem onClick={() => void updateSettings({ player: { eqEnabled: false } })}>
+                            {!p.eqEnabled && <Check className="me-2 h-4 w-4" />}
+                            {t("eq.off")}
+                          </DropdownMenuItem>
+                          {Object.keys(EQ_PRESETS).map((key) => (
+                            <DropdownMenuItem
+                              key={key}
+                              onClick={() => {
+                                resumeAudio();
+                                void updateSettings({ player: { eqEnabled: true, eqPreset: key, eqBands: [...EQ_PRESETS[key]] } });
+                              }}
+                            >
+                              {p.eqEnabled && p.eqPreset === key && <Check className="me-2 h-4 w-4" />}
+                              {t(`eq.preset.${key}`)}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
                       <DropdownMenuSub>
                         <DropdownMenuSubTrigger>
                           <Gauge className="me-2 h-4 w-4" />
