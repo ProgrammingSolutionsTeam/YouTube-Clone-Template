@@ -18,7 +18,50 @@ export interface PlayerSettings {
   pipEnabled: boolean;
   loopByDefault: boolean;
   preferredQuality: string;
+  /** keep playing when the tab is hidden / screen locked */
+  backgroundPlay: boolean;
+  eqEnabled: boolean;
+  eqPreset: string;
+  /** 10 band gains in dB (-12..12) at EQ_FREQUENCIES */
+  eqBands: number[];
+  /** output gain multiplier 1..2 (100%..200%) */
+  boost: number;
+  /** soft limiter that prevents clipping when boosting */
+  limiter: boolean;
 }
+
+export interface ShortsSettings {
+  enabled: boolean;
+  maxDuration: number;
+  maxSizeMB: number;
+  verticalOnly: boolean;
+  shuffle: boolean;
+  avoidRepeats: boolean;
+  autoScroll: boolean;
+  loop: boolean;
+  startMuted: boolean;
+  fit: "cover" | "contain";
+  speed: number;
+  doubleTapLike: boolean;
+  showProgress: boolean;
+  showInfo: boolean;
+  preloadNext: boolean;
+  holdToPause: boolean;
+  wheelNavigation: boolean;
+}
+
+export const EQ_FREQUENCIES = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+
+export const EQ_PRESETS: Record<string, number[]> = {
+  flat: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  bass: [7, 6, 5, 3, 1, 0, 0, 0, 0, 0],
+  treble: [0, 0, 0, 0, 0, 1, 3, 5, 6, 7],
+  vocal: [-2, -2, -1, 1, 4, 5, 4, 2, 0, -1],
+  movie: [4, 3, 1, 0, 1, 3, 4, 3, 2, 1],
+  music: [4, 3, 1, 0, -1, 0, 2, 3, 4, 4],
+  loudness: [6, 4, 0, 0, -2, 0, -1, 0, 4, 5],
+  night: [-4, -3, -1, 1, 3, 4, 3, 1, -2, -4],
+};
 
 export interface LibrarySettings {
   gridDensity: "compact" | "comfortable" | "spacious";
@@ -41,6 +84,8 @@ export interface ScannerSettings {
   deepDetect: boolean;
   generateThumbnails: boolean;
   watchForChanges: boolean;
+  /** automatic re-index interval in minutes, 0 = off (1..1440) */
+  autoRefreshMinutes: number;
 }
 
 export interface AppSettings {
@@ -54,6 +99,7 @@ export interface AppSettings {
   player: PlayerSettings;
   privacy: PrivacySettings;
   scanner: ScannerSettings;
+  shorts: ShortsSettings;
   pinnedChannels: string[];
 }
 
@@ -100,6 +146,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
     pipEnabled: true,
     loopByDefault: false,
     preferredQuality: "auto",
+    backgroundPlay: true,
+    eqEnabled: false,
+    eqPreset: "flat",
+    eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    boost: 1,
+    limiter: true,
   },
   privacy: {
     saveHistory: true,
@@ -112,6 +164,26 @@ export const DEFAULT_SETTINGS: AppSettings = {
     deepDetect: false,
     generateThumbnails: true,
     watchForChanges: false,
+    autoRefreshMinutes: 0,
+  },
+  shorts: {
+    enabled: true,
+    maxDuration: 90,
+    maxSizeMB: 80,
+    verticalOnly: false,
+    shuffle: true,
+    avoidRepeats: true,
+    autoScroll: false,
+    loop: true,
+    startMuted: false,
+    fit: "cover",
+    speed: 1,
+    doubleTapLike: true,
+    showProgress: true,
+    showInfo: true,
+    preloadNext: true,
+    holdToPause: true,
+    wheelNavigation: true,
   },
   pinnedChannels: [],
 };
@@ -126,6 +198,7 @@ export function mergeSettings(stored: Partial<AppSettings> | null | undefined): 
     player: { ...DEFAULT_SETTINGS.player, ...(stored.player ?? {}) },
     privacy: { ...DEFAULT_SETTINGS.privacy, ...(stored.privacy ?? {}) },
     scanner: { ...DEFAULT_SETTINGS.scanner, ...(stored.scanner ?? {}) },
+    shorts: { ...DEFAULT_SETTINGS.shorts, ...(stored.shorts ?? {}) },
     pinnedChannels: stored.pinnedChannels ?? [],
   };
 }
