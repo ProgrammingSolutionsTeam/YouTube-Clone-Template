@@ -268,6 +268,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         player: { ...settings.player, ...(patch.player ?? {}) },
         privacy: { ...settings.privacy, ...(patch.privacy ?? {}) },
         scanner: { ...settings.scanner, ...(patch.scanner ?? {}) },
+        shorts: { ...settings.shorts, ...(patch.shorts ?? {}) },
       } as AppSettings);
       setSettings(next);
       applyAppearance(next);
