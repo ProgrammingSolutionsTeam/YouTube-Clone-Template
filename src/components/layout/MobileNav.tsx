@@ -1,12 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { FolderTree, Home, Library, Settings, TrendingUp, type LucideIcon } from "lucide-react";
+import { FolderTree, Home, Library, Settings, Smartphone, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/context/SessionProvider";
 
 const items: { path: string; labelKey: string; icon: LucideIcon }[] = [
   { path: "/", labelKey: "nav.home", icon: Home },
   { path: "/browse", labelKey: "nav.browse", icon: FolderTree },
-  { path: "/trending", labelKey: "nav.trending", icon: TrendingUp },
+  { path: "/scrolling", labelKey: "nav.scrolling", icon: Smartphone },
   { path: "/library", labelKey: "nav.library", icon: Library },
   { path: "/settings", labelKey: "nav.settings", icon: Settings },
 ];

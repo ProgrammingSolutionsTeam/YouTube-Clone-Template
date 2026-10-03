@@ -226,7 +226,7 @@ const Slide = memo(function Slide({
   onMuted: (v: boolean) => void;
   onEnded: () => void;
 }) {
-  const { t, settings, favorites, watchLater, toggleFavorite, toggleWatchLater } = useSession();
+  const { t, settings, favorites, watchLater, toggleFavorite, toggleWatchLater, updateSettings } = useSession();
   const navigate = useNavigate();
   const s = settings.shorts;
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -436,18 +436,18 @@ const Slide = memo(function Slide({
 
         {/* actions — overlaid on narrow screens */}
         <div className="absolute bottom-16 end-2 flex flex-col items-center gap-4 text-white sm:hidden">
-          <Actions />
+          {actions()}
         </div>
       </div>
 
       <div className="hidden flex-col items-center gap-4 pb-4 sm:flex">
-        <Actions />
+        {actions()}
       </div>
       <ShareDialog item={item} open={shareOpen} onOpenChange={setShareOpen} />
     </div>
   );
 
-  function Actions() {
+  function actions() {
     return (
       <>
         <Action label={t("shorts.like")} onClick={() => void toggleFavorite(item.id)} on={liked}>
@@ -459,7 +459,7 @@ const Slide = memo(function Slide({
         <Action label={t("share.title")} onClick={() => setShareOpen(true)}>
           <Share2 className="h-6 w-6" />
         </Action>
-        <Action label={t("shorts.loop")} on={s.loop} onClick={() => void 0}>
+        <Action label={t("shorts.loop")} on={s.loop} onClick={() => void updateSettings({ shorts: { loop: !s.loop } })}>
           <Repeat className="h-6 w-6" />
         </Action>
         <Action label={t("shorts.open")} onClick={() => navigate(watchHref(locationOf(item)))}>
