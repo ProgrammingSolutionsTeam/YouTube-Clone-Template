@@ -149,7 +149,7 @@ const Shorts = () => {
             </RoundButton>
           </div>
         )}
-        <div className="absolute start-3 top-3 flex gap-2">
+        {!!items?.length && (<div className="absolute start-3 top-3 flex gap-2">
           <RoundButton label={t("shorts.reshuffle")} onClick={() => setSeed((v) => v + 1)} small>
             <Shuffle className="h-4 w-4" />
           </RoundButton>
@@ -172,7 +172,7 @@ const Shorts = () => {
           >
             <Gauge className="h-4 w-4" />
           </RoundButton>
-        </div>
+        </div>)}
       </div>
     </AppLayout>
   );
