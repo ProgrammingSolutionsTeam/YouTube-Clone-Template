@@ -15,6 +15,8 @@ import Trending from "./pages/Trending";
 import Auth from "./pages/Auth";
 import Browse from "./pages/Browse";
 import Search from "./pages/Search";
+import Shorts from "./pages/Shorts";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
 
@@ -35,6 +37,7 @@ const App = () => (
         <BrowserRouter>
           <PlayerProvider>
           <RouteMeta />
+          <AutoRefresh />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/watch/:videoId" element={<Watch />} />
@@ -50,6 +53,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/scrolling" element={<Shorts />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,4 +1,6 @@
 import { NetworkShareCard } from "@/components/settings/NetworkShareCard";
+import { AudioSettingsCard, ShortsSettingsCard, REFRESH_OPTIONS } from "@/components/settings/MediaSettingsCards";
+import { refreshAllRoots } from "@/components/AutoRefresh";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppLayout, PageHeading } from "@/components/layout/AppLayout";
@@ -242,6 +244,7 @@ const Settings = () => {
             <TabsTrigger value="general">{t("settings.tab.general")}</TabsTrigger>
             <TabsTrigger value="roots">{t("settings.tab.roots")}</TabsTrigger>
             <TabsTrigger value="player">{t("settings.tab.player")}</TabsTrigger>
+            <TabsTrigger value="scrolling">{t("nav.scrolling")}</TabsTrigger>
             <TabsTrigger value="library">{t("settings.tab.library")}</TabsTrigger>
             <TabsTrigger value="privacy">{t("settings.tab.privacy")}</TabsTrigger>
             <TabsTrigger value="account">{t("settings.tab.account")}</TabsTrigger>
@@ -495,6 +498,29 @@ const Settings = () => {
                       onCheckedChange={(v) => void updateSettings({ scanner: { deepDetect: v } })}
                     />
                   </Row>
+                  <Row label={t("scanner.autoRefresh")} hint={t("scanner.autoRefreshHint")}>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={String(settings.scanner.autoRefreshMinutes)}
+                        onValueChange={(v) => void updateSettings({ scanner: { autoRefreshMinutes: Number(v) } })}
+                      >
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {REFRESH_OPTIONS.map((m) => (
+                            <SelectItem key={m} value={String(m)}>
+                              {m === 0 ? t("scanner.off") : m < 60 ? `${m} ${t("time.min")}` : `${m / 60} ${t("time.hour")}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button size="icon" variant="secondary" aria-label={t("scanner.refreshNow")} title={t("scanner.refreshNow")}
+                        onClick={() => void refreshAllRoots(settings.scanner.deepDetect).then(refresh)}>
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Row>
                   <Row label={t("scanner.thumbnails")}>
                     <Switch
                       checked={settings.scanner.generateThumbnails}
@@ -616,6 +642,11 @@ const Settings = () => {
                 </Row>
               </CardContent>
             </Card>
+            <AudioSettingsCard />
+          </TabsContent>
+
+          <TabsContent value="scrolling" className="space-y-4">
+            <ShortsSettingsCard />
           </TabsContent>
 
           {/* ----------------------------------------------------- library */}
