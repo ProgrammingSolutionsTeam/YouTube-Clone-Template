@@ -47,6 +47,7 @@ import { scanFileList } from "@/lib/scanner/fileListScanner";
 import { invalidateLibrary, libraryStats } from "@/lib/media/library";
 import type { RootRecord, ScanProgress } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
+import { isNativeApp, requestStorageAccess } from "@/lib/native/android";
 
 const Settings = () => {
   const { t, settings, updateSettings, resetSettings, user, folder, updateAccount, exportData, wipeEverything } =
@@ -62,6 +63,7 @@ const Settings = () => {
   const [rescanTarget, setRescanTarget] = useState<RootRecord | null>(null);
   const rescanInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<ScanProgress | null>(null);
   const [stats, setStats] = useState<{ items: number; roots: number; channels: number } | null>(null);
 
@@ -392,7 +394,7 @@ const Settings = () => {
                       className="flex-1 sm:flex-none"
                     >
                       <FolderOpen className="me-2 h-4 w-4" />
-                      {lang === "ar" ? "اختيار ملفات من الهاتف" : "Pick phone files"}
+                      {settings.language === "ar" ? "اختيار ملفات من الهاتف" : "Pick phone files"}
                     </Button>
                   )}
                   <input
