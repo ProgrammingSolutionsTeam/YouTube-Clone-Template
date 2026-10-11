@@ -373,12 +373,39 @@ const Settings = () => {
                   )}
                   <Button
                     variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={async () => {
+                      await requestStorageAccess();
+                      fileInputRef.current?.click();
+                    }}
                     className="flex-1 sm:flex-none"
                   >
                     <FolderOpen className="me-2 h-4 w-4" />
                     {t("roots.filesMode")}
                   </Button>
+                  {isNativeApp() && (
+                    <Button
+                      variant="outline"
+                      onClick={async () => {
+                        await requestStorageAccess();
+                        phoneInputRef.current?.click();
+                      }}
+                      className="flex-1 sm:flex-none"
+                    >
+                      <FolderOpen className="me-2 h-4 w-4" />
+                      {lang === "ar" ? "اختيار ملفات من الهاتف" : "Pick phone files"}
+                    </Button>
+                  )}
+                  <input
+                    ref={phoneInputRef}
+                    type="file"
+                    multiple
+                    hidden
+                    accept="video/*,audio/*,.srt,.vtt,.ass,.ssa,.mkv,.rm,.rmvb,.wmv,.flv,.avi"
+                    onChange={(e) => {
+                      pickFiles(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
                   <input
                     ref={fileInputRef}
                     type="file"
