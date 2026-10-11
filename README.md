@@ -272,3 +272,6 @@ npm run build   # ثم قدّم مجلد dist من أي خادم ملفات مح
 ---
 
 دليل المستخدم النهائي بالعربية والإنجليزية في [DOCUMENTATION.md](./DOCUMENTATION.md).
+
+## Android
+See ANDROID.md — Capacitor config, icons in resources/, permissions via `npm run cap:setup`.
