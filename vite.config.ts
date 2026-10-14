@@ -1,10 +1,11 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import fs from "node:fs";
 import type { Plugin } from "vite";
 import { localTubeShare } from "./server/sharePlugin";
+import { localTubeSync } from "./server/syncPlugin";
 
 function localFfmpegCore(): Plugin {
   const files = {
@@ -35,7 +36,14 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [react(), localFfmpegCore(), localTubeShare(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react(),
+    localFfmpegCore(),
+    localTubeShare(),
+    // server-only values (DATABASE_URL, ...) are read from .env here and never reach the browser bundle
+    localTubeSync(loadEnv(mode, process.cwd(), "")),
+    mode === "development" && componentTagger(),
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
