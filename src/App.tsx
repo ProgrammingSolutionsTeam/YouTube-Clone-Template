@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import Browse from "./pages/Browse";
 import Search from "./pages/Search";
 import Shorts from "./pages/Shorts";
+import Support from "./pages/Support";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/browse" element={<Browse />} />
             <Route path="/search" element={<Search />} />
             <Route path="/scrolling" element={<Shorts />} />
+            <Route path="/support" element={<Support />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
