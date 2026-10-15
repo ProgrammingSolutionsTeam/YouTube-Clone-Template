@@ -1,4 +1,5 @@
 import { NetworkShareCard } from "@/components/settings/NetworkShareCard";
+import { SyncCard } from "@/components/settings/SyncCard";
 import { AudioSettingsCard, ShortsSettingsCard, REFRESH_OPTIONS } from "@/components/settings/MediaSettingsCards";
 import { refreshAllRoots } from "@/components/AutoRefresh";
 import { useEffect, useRef, useState } from "react";
@@ -804,6 +805,7 @@ const Settings = () => {
 
           {/* ----------------------------------------------------- account */}
           <TabsContent value="account" className="space-y-4">
+            <SyncCard />
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">{t("settings.tab.account")}</CardTitle>
