@@ -3,3 +3,4 @@
 - LAN sharing runs as a Vite middleware (server/sharePlugin.ts) reading localtube.shared.json; clients see opaque ids only, and only loopback requests may change shares.
 
 - Android build uses Capacitor bundling dist/ (no server.url by default) and scripts/android-setup.mjs patches permissions/version after `cap add android` — keeps the app offline and the native folder regenerable.
+- Synced accounts run as Vite middleware (server/syncPlugin.ts + server/db.ts) talking to Neon over HTTP; DATABASE_URL (or the Lovable gateway keys) is read via loadEnv on the server only, clients use src/lib/sync/client.ts — local accounts stay fully offline.

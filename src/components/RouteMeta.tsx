@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { reportVisit } from "@/lib/sync/client";
 
 const BASE = "LocalTube";
 const META: Record<string, [string, string]> = {
@@ -15,6 +16,7 @@ const META: Record<string, [string, string]> = {
   "/trending": ["الرائج — LocalTube", "المقاطع الأكثر مشاهدة في مكتبتك المحلية على LocalTube."],
   "/auth": ["تسجيل الدخول — LocalTube", "سجّل الدخول أو أنشئ حسابًا محليًا مشفرًا للوصول إلى مكتبتك."],
   "/browse": ["تصفح المجلدات — LocalTube", "تنقّل بين مجلدات وملفات مكتبتك المحلية بسهولة."],
+  "/support": ["الدعم — LocalTube", "أرسل رسالة دعم أو توصية أو شكوى لمسؤول خادم LocalTube."],
   "/search": ["البحث — LocalTube", "ابحث فورًا في مقاطع الفيديو والصوتيات داخل مكتبتك المحلية."],
 };
 
@@ -35,6 +37,7 @@ export function RouteMeta() {
     const key = "/" + (pathname.split("/")[1] ?? "");
     const [title, description] = META[key] ?? [`الصفحة غير موجودة — ${BASE}`, META["/"][1]];
     document.title = title;
+    reportVisit(pathname);
     setMeta("name", "description", description);
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", description);
