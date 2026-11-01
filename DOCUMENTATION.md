@@ -131,3 +131,38 @@ Serve the production build on a LAN address and open the host address from anoth
 - **Slow legacy file:** allow local conversion to finish, close heavy apps, or pre-convert to MP4/H.264/AAC.
 - **Folder access denied:** use Chrome/Edge on `localhost` or secure HTTPS.
 - **Slow browsing:** disable hover previews, lower items per page, and close PiP on older browsers before navigating.
+---
+
+## المزامنة والخادم الرئيسي | Sync & main server
+
+### العربية
+**نوعا الحساب**
+- **حساب محلي:** يُنشأ من صفحة تسجيل الدخول، كل بياناته مشفرة على هذا الجهاز فقط ولا يحتاج إنترنت.
+- **حساب متزامن:** من **الإعدادات ← الحساب ← الحساب المتزامن**. يحفظ ما تختاره في الخادم الرئيسي لتسجّل الدخول من أي جهاز وتجد بياناتك.
+
+**تجهيز الخادم الرئيسي (مرة واحدة)**
+1. أنشئ قاعدة بيانات في Neon وانسخ رابط الاتصال.
+2. على الجهاز الذي سيكون الخادم، انسخ `.env.example` إلى `.env` واملأ:
+   - `DATABASE_URL=` رابط Neon (يبقى على الخادم فقط ولا يصل للمستخدمين).
+   - `VITE_LOCALTUBE_SERVER=` العنوان أو الدومين الذي سيدخل منه المستخدمون، مثل `https://tube.example.com` أو `http://192.168.1.10:8080`.
+3. شغّل `npm install` ثم `npm run build` ثم `npx vite preview --host --port 8080`.
+4. الجداول مُنشأة مسبقًا في قاعدتك. أول حساب متزامن يُسجَّل يصبح **المسؤول**.
+
+**ما يُزامن (يمكن إيقاف أي بند):** الإعدادات، الإعجابات، المشاهدة لاحقًا، سجل المشاهدة ونسبة التقدم، نشر الجذور والقنوات، عدّ المشاهدات. اضغط **مزامنة الآن** لسحب بيانات الأجهزة الأخرى ثم إرسال بيانات هذا الجهاز.
+**ما لا يُزامن أبدًا:** ملفات الفيديو نفسها، كلمة مرور الحساب المحلي، مسارات القرص الحقيقية.
+
+**ما يحفظه الخادم:** الحسابات (كلمات المرور مجزأة scrypt فقط)، الجلسات (30 يومًا)، سجل الدخول والمحاولات الفاشلة، الأجهزة، الزيارات، سجلات المراقبة، ورسائل الدعم.
+
+**الدعم:** صفحة `/support` لإرسال دعم أو توصية أو شكوى ومتابعة الرد. المسؤول يرى كل الرسائل ولوحة بعدد المستخدمين والجلسات والزيارات.
+
+**عدم فقدان البيانات:** سجّل الدخول بالحساب المتزامن على الجهاز الجديد واضغط مزامنة الآن. احتفظ أيضًا بنسخة من **تصدير بياناتي**.
+
+### English
+- **Local account:** encrypted on this device only, works offline.
+- **Synced account:** Settings → Account → Synced account. Stores what you choose on the main server.
+
+**Main server setup:** copy `.env.example` to `.env`, set `DATABASE_URL` (Neon, server-only) and `VITE_LOCALTUBE_SERVER` (the address users open), then `npm run build && npx vite preview --host --port 8080`. Tables already exist; the first synced account becomes admin.
+
+**Synced (toggle each):** settings, likes, watch later, history & progress, published roots/channels, view counts. **Never synced:** media files, local password, real disk paths.
+**Server keeps:** accounts (scrypt hashes), 30‑day sessions, sign-in events, devices, visits, audit log, support tickets.
+**Support:** `/support` for support, suggestions and complaints; admins see all tickets and an overview.
