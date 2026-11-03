@@ -16,6 +16,8 @@ const META: Record<string, [string, string]> = {
   "/trending": ["الرائج — LocalTube", "المقاطع الأكثر مشاهدة في مكتبتك المحلية على LocalTube."],
   "/auth": ["تسجيل الدخول — LocalTube", "سجّل الدخول أو أنشئ حسابًا محليًا مشفرًا للوصول إلى مكتبتك."],
   "/browse": ["تصفح المجلدات — LocalTube", "تنقّل بين مجلدات وملفات مكتبتك المحلية بسهولة."],
+  "/radio": ["Radio — LocalTube", "Listen to your favourite Arabic and world radio stations, music and news, live in LocalTube."],
+  "/scrolling": ["Scrolling — LocalTube", "Swipe through the short clips in your local library, like Shorts and Reels."],
   "/support": ["الدعم — LocalTube", "أرسل رسالة دعم أو توصية أو شكوى لمسؤول خادم LocalTube."],
   "/search": ["البحث — LocalTube", "ابحث فورًا في مقاطع الفيديو والصوتيات داخل مكتبتك المحلية."],
 };

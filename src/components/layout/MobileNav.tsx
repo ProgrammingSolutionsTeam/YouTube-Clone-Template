@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { FolderTree, Home, Library, Settings, Smartphone, type LucideIcon } from "lucide-react";
+import { FolderTree, Home, Library, Radio, Settings, Smartphone, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/context/SessionProvider";
 
@@ -7,6 +7,7 @@ const items: { path: string; labelKey: string; icon: LucideIcon }[] = [
   { path: "/", labelKey: "nav.home", icon: Home },
   { path: "/browse", labelKey: "nav.browse", icon: FolderTree },
   { path: "/scrolling", labelKey: "nav.scrolling", icon: Smartphone },
+  { path: "/radio", labelKey: "nav.radio", icon: Radio },
   { path: "/library", labelKey: "nav.library", icon: Library },
   { path: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
@@ -18,7 +19,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-youtube-border bg-background/95 backdrop-blur md:hidden">
-      <ul className="grid grid-cols-5">
+      <ul className="grid grid-cols-6">
         {items.map((item) => {
           const active = pathname === item.path;
           return (

@@ -80,7 +80,7 @@ const Radio = () => {
   }, [category, query]);
 
   const isCurrent = (u: string) => Boolean(radio.station && sameStream(radio.station.url, u));
-  const PlayBtn = ({ st, size = "icon" }: { st: PlayableStation; size?: "icon" | "lg" }) => {
+  const playBtn = (st: PlayableStation, size: "icon" | "lg" = "icon") => {
     const current = isCurrent(st.url);
     const playing = current && radio.state === "playing";
     const loading = current && radio.state === "loading";
@@ -122,7 +122,7 @@ const Radio = () => {
             <div className="truncate text-xl font-bold">{radio.station?.name ?? L("لا توجد محطة", "Nothing playing")}</div>
             {status && <div className={cn("text-sm", radio.state === "error" ? "text-destructive" : "text-muted-foreground")}>{status}</div>}
           </div>
-          {radio.station && <PlayBtn st={radio.station} size="lg" />}
+          {radio.station && playBtn(radio.station, "lg")}
           <div className="flex w-full items-center gap-3 sm:w-56">
             <Volume2 className="h-4 w-4 shrink-0 text-muted-foreground" />
             <Slider min={0} max={1} step={0.01} value={[radio.volume]} onValueChange={([v]) => radio.setVolume(v)} aria-label={L("مستوى الصوت", "Volume")} />
@@ -173,7 +173,7 @@ const Radio = () => {
                 <ul className="space-y-2">
                   {stations.map((st) => (
                     <li key={st.id} className={cn("flex items-center gap-3 rounded-xl border p-2.5 transition-colors", isCurrent(st.url) ? "border-primary bg-primary/10" : "border-border bg-secondary/30")}>
-                      <PlayBtn st={st} />
+                      {playBtn(st)}
                       <span className="text-xl" aria-hidden>{flag(st.country ?? "")}</span>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-semibold">{st.name}</div>
@@ -213,7 +213,7 @@ const Radio = () => {
                 const saved = stations.some((st) => sameStream(st.url, s.url));
                 return (
                   <li key={s.url} className={cn("flex items-center gap-2.5 rounded-xl border p-2.5 transition-colors", isCurrent(s.url) ? "border-primary bg-primary/10" : "border-border hover:bg-secondary/50")}>
-                    <PlayBtn st={s} />
+                    {playBtn(s)}
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-semibold">{s.name}</div>
                       <div className="truncate text-xs text-muted-foreground"><span aria-hidden>{flag(s.country)}</span> {s.tags}</div>

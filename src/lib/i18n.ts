@@ -6,6 +6,7 @@ type Dict = Record<string, { ar: string; en: string }>;
 
 const D: Dict = {
   "nav.scrolling": { ar: "Scrolling", en: "Scrolling" },
+  "nav.radio": { ar: "الراديو", en: "Radio" },
   "eq.title": { ar: "المعادل الصوتي ورفع الصوت", en: "Equalizer & volume boost" },
   "eq.hint": { ar: "حسّن الصوت وارفعه حتى 200% — يعمل على ملفات جهازك.", en: "Shape the sound and boost it up to 200% — works on files from this device." },
   "eq.off": { ar: "إيقاف", en: "Off" },
