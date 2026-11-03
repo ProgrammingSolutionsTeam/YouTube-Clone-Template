@@ -17,6 +17,9 @@ import Browse from "./pages/Browse";
 import Search from "./pages/Search";
 import Shorts from "./pages/Shorts";
 import Support from "./pages/Support";
+import Radio from "./pages/Radio";
+import { RadioProvider } from "@/context/RadioProvider";
+import { RadioBar } from "@/components/radio/RadioBar";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
@@ -37,7 +40,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <PlayerProvider>
+          <RadioProvider>
           <RouteMeta />
+          <RadioBar />
           <AutoRefresh />
           <Routes>
             <Route path="/" element={<Home />} />
@@ -56,9 +61,11 @@ const App = () => (
             <Route path="/search" element={<Search />} />
             <Route path="/scrolling" element={<Shorts />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/radio" element={<Radio />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </RadioProvider>
           </PlayerProvider>
         </BrowserRouter>
       </TooltipProvider>

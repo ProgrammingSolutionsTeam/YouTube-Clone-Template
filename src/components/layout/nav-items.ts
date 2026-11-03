@@ -5,6 +5,7 @@ import {
   Heart,
   Home,
   Library,
+  Radio,
   Smartphone,
   Settings,
   TrendingUp,
@@ -21,6 +22,7 @@ export interface NavItem {
 export const mainMenuItems: NavItem[] = [
   { path: "/", labelKey: "nav.home", icon: Home },
   { path: "/scrolling", labelKey: "nav.scrolling", icon: Smartphone },
+  { path: "/radio", labelKey: "nav.radio", icon: Radio },
   { path: "/browse", labelKey: "nav.browse", icon: FolderTree },
   { path: "/subscriptions", labelKey: "nav.subscriptions", icon: Tv },
   { path: "/library", labelKey: "nav.library", icon: Library },

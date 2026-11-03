@@ -87,6 +87,22 @@ export interface ScannerSettings {
   autoRefreshMinutes: number;
 }
 
+export interface RadioStation {
+  id: string;
+  name: string;
+  url: string;
+  /** suggestion category: arabic | quran | news | music | world | custom */
+  category?: string;
+  country?: string;
+  addedAt: number;
+}
+
+export interface RadioSettings {
+  stations: RadioStation[];
+  volume: number;
+  lastId?: string;
+}
+
 export interface AppSettings {
   version: number;
   language: Language;
@@ -99,6 +115,7 @@ export interface AppSettings {
   privacy: PrivacySettings;
   scanner: ScannerSettings;
   shorts: ShortsSettings;
+  radio: RadioSettings;
   pinnedChannels: string[];
 }
 
@@ -117,7 +134,7 @@ export const ACCENTS: { key: string; hsl: string; labelAr: string; labelEn: stri
 
 export const DEFAULT_SETTINGS: AppSettings = {
   version: 1,
-  language: "ar",
+  language: "en",
   theme: "dark",
   accent: "red",
   fontScale: 1,
@@ -183,6 +200,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     preloadNext: true,
     holdToPause: true,
   },
+  radio: { stations: [], volume: 0.8 },
   pinnedChannels: [],
 };
 
@@ -197,6 +215,11 @@ export function mergeSettings(stored: Partial<AppSettings> | null | undefined): 
     privacy: { ...DEFAULT_SETTINGS.privacy, ...(stored.privacy ?? {}) },
     scanner: { ...DEFAULT_SETTINGS.scanner, ...(stored.scanner ?? {}) },
     shorts: { ...DEFAULT_SETTINGS.shorts, ...(stored.shorts ?? {}) },
+    radio: {
+      ...DEFAULT_SETTINGS.radio,
+      ...(stored.radio ?? {}),
+      stations: Array.isArray(stored.radio?.stations) ? stored.radio.stations : [],
+    },
     pinnedChannels: stored.pinnedChannels ?? [],
   };
 }
