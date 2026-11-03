@@ -269,6 +269,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         privacy: { ...settings.privacy, ...(patch.privacy ?? {}) },
         scanner: { ...settings.scanner, ...(patch.scanner ?? {}) },
         shorts: { ...settings.shorts, ...(patch.shorts ?? {}) },
+        radio: { ...settings.radio, ...(patch.radio ?? {}) },
       } as AppSettings);
       setSettings(next);
       applyAppearance(next);
