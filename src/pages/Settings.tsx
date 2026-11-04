@@ -347,7 +347,7 @@ const Settings = () => {
           </TabsContent>
 
           {/* ------------------------------------------------------- roots */}
-          <TabsContent value="roots" className="mt-0 grid grid-cols-1 gap-5 2xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] 2xl:items-start">
+          <TabsContent value="roots" className="mt-0 grid grid-cols-1 gap-5 [&>*]:min-w-0 2xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] 2xl:items-start">
             <NetworkShareCard localRoots={roots} />
             <Card>
               <CardHeader>
@@ -579,7 +579,7 @@ const Settings = () => {
           </TabsContent>
 
           {/* ------------------------------------------------------ player */}
-          <TabsContent value="player" className="mt-0 grid grid-cols-1 gap-5 2xl:grid-cols-2 2xl:items-start">
+          <TabsContent value="player" className="mt-0 grid grid-cols-1 gap-5 [&>*]:min-w-0 2xl:grid-cols-2 2xl:items-start">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">{t("settings.tab.player")}</CardTitle>

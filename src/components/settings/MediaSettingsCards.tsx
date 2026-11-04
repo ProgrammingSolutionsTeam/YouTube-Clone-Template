@@ -116,7 +116,7 @@ export function AudioSettingsCard() {
           </Row>
         </div>
 
-        <div className="rounded-2xl border border-border bg-secondary/30 p-4">
+        <div className="rounded-2xl border border-border bg-secondary/30 p-3 sm:p-4">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <label className="flex items-center gap-3 text-base font-semibold">
               <Switch checked={p.eqEnabled} onCheckedChange={(v) => void save({ eqEnabled: v })} />
@@ -150,11 +150,11 @@ export function AudioSettingsCard() {
             })}
           </div>
 
-          <div className={cn("flex gap-2 transition-opacity", !p.eqEnabled && "opacity-50")} dir="ltr">
+          <div className={cn("-mx-1 flex gap-1.5 overflow-x-auto px-1 transition-opacity sm:gap-2", !p.eqEnabled && "opacity-50")} dir="ltr">
             <div className="flex h-56 flex-col justify-between py-7 text-[10px] tabular-nums text-muted-foreground">
               <span>+12</span><span>0</span><span>-12</span>
             </div>
-            <div className="relative flex flex-1 justify-between gap-1">
+            <div className="relative flex min-w-[260px] flex-1 justify-between gap-0.5 sm:gap-1">
               <div className="pointer-events-none absolute inset-x-0 top-1/2 border-t border-dashed border-border" />
               {EQ_FREQUENCIES.map((f, i) => (
                 <div key={f} className="relative flex flex-1 flex-col items-center">
