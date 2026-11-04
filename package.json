@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test": "vitest run",
     "cap:android": "npm run build && npx cap sync android",
     "cap:setup": "node scripts/android-setup.mjs"
   },
