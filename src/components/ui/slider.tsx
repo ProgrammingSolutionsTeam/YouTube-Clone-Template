@@ -6,16 +6,19 @@ import { cn } from "@/lib/utils";
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, ...props }, ref) => (
+>(({ className, "aria-label": ariaLabel, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
-    className={cn("relative flex w-full touch-none select-none items-center data-[orientation=vertical]:h-full data-[orientation=vertical]:w-5 data-[orientation=vertical]:flex-col data-[orientation=vertical]:justify-center", className)}
+    className={cn("relative flex w-full touch-none select-none items-center data-[orientation=vertical]:h-full data-[orientation=vertical]:w-6 data-[orientation=vertical]:flex-col data-[orientation=vertical]:justify-center", className)}
     {...props}
   >
     <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary data-[orientation=vertical]:h-full data-[orientation=vertical]:w-2">
       <SliderPrimitive.Range className="absolute h-full bg-primary data-[orientation=vertical]:h-auto data-[orientation=vertical]:w-full" />
     </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+    <SliderPrimitive.Thumb
+      aria-label={ariaLabel}
+      className="block h-5 w-5 cursor-grab rounded-full border-2 border-primary bg-background shadow ring-offset-background transition-colors active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+    />
   </SliderPrimitive.Root>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;
