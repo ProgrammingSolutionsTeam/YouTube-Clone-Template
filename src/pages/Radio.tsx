@@ -34,14 +34,14 @@ const Radio = () => {
 
   const checkUrl = () => {
     const r = normalizeStationUrl(url);
-    if (!r.ok) {
+    if ("reason" in r) {
       setError(r.reason === "empty" ? L("أدخل رابط البث", "Enter the stream link")
         : r.reason === "protocol" ? L("الرابط يجب أن يبدأ بـ http أو https", "The link must start with http or https")
         : L("الرابط غير صحيح", "That link isn't valid"));
       return null;
     }
     setError(null);
-    return r.url;
+    return (r as { url: string }).url;
   };
 
   const add = async () => {

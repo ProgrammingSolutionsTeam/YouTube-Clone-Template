@@ -13,9 +13,43 @@ export interface SyncUser { id: string; email: string; displayName: string; role
 export interface SyncOptions { settings: boolean; likes: boolean; watchLater: boolean; history: boolean; roots: boolean; views: boolean }
 export const DEFAULT_SYNC_OPTIONS: SyncOptions = { settings: true, likes: true, watchLater: true, history: true, roots: false, views: true };
 
+const clean = (u: string) => u.replace(/\/+$/, "");
+const configuredServer = () => clean((import.meta.env.VITE_LOCALTUBE_SERVER as string | undefined)?.trim() ?? "");
+let resolved: string | null = null;
+let resolving: Promise<string> | null = null;
+
+/** The server in use right now (the configured one, or this page's own address). */
 export function serverUrl(): string {
-  const configured = (import.meta.env.VITE_LOCALTUBE_SERVER as string | undefined)?.trim();
-  return (configured || window.location.origin).replace(/\/+$/, "");
+  return resolved ?? (configuredServer() || clean(window.location.origin));
+}
+
+async function probe(base: string): Promise<boolean> {
+  // An http:// server can't be reached from an https:// page (mixed content).
+  if (window.location.protocol === "https:" && base.startsWith("http://")) return false;
+  try {
+    const res = await fetch(`${base}/api/server/info`, { signal: AbortSignal.timeout(3500) });
+    const json = await res.json().catch(() => ({}));
+    return res.ok && Boolean(json?.sync);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Picks the server once per page load: the configured address first, then the
+ * address the app was opened from. So a LAN address in .env never locks the app
+ * out of a server that is actually reachable.
+ */
+export function resolveServer(): Promise<string> {
+  if (resolved) return Promise.resolve(resolved);
+  resolving ??= (async () => {
+    const own = clean(window.location.origin);
+    const candidates = [...new Set([configuredServer(), own].filter(Boolean))];
+    for (const c of candidates) if (await probe(c)) return (resolved = c);
+    resolving = null;
+    return candidates[0] ?? own;
+  })();
+  return resolving;
 }
 
 export function deviceKey(): string {
@@ -40,7 +74,8 @@ async function api<T>(path: string, body?: unknown): Promise<T> {
   const token = syncToken();
   let res: Response;
   try {
-    res = await fetch(`${serverUrl()}${path}`, {
+    const base = await resolveServer();
+    res = await fetch(`${base}${path}`, {
       method: body === undefined ? "GET" : "POST",
       headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -80,6 +115,14 @@ export interface PullResult {
   roots: unknown[];
 }
 export const syncPull = () => api<PullResult>("/api/sync/pull");
+
+export interface ServerStatus {
+  settingsSavedAt: string | null;
+  likes: number; watchLater: number; history: number; roots: number;
+  devices: number; sessions: number; lastPushAt: string | null; serverTime: string;
+}
+/** What the main server actually holds for this account (read back from the database). */
+export const syncStatus = () => api<ServerStatus>("/api/sync/status");
 export async function syncPush(payload: Record<string, unknown>) {
   await api("/api/sync/push", { ...payload, deviceKey: deviceKey(), syncOptions: syncOptions() });
   localStorage.setItem(LAST_KEY, String(Date.now()));

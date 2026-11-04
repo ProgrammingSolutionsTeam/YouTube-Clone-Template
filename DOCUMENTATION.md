@@ -166,3 +166,46 @@ Serve the production build on a LAN address and open the host address from anoth
 **Synced (toggle each):** settings, likes, watch later, history & progress, published roots/channels, view counts. **Never synced:** media files, local password, real disk paths.
 **Server keeps:** accounts (scrypt hashes), 30‑day sessions, sign-in events, devices, visits, audit log, support tickets.
 **Support:** `/support` for support, suggestions and complaints; admins see all tickets and an overview.
+
+
+## الراديو | Radio
+
+### العربية
+1. افتح **الراديو** من القائمة الجانبية (أو الشريط السفلي في الهاتف).
+2. **إضافة محطة:** اكتب اسمها والصق رابط البث المباشر (غالبًا ينتهي بـ mp3 أو aac أو stream)، ثم **حفظ المحطة**. زر **تجربة** يشغّلها دون حفظ.
+3. **المحطات المقترحة:** عربية، أخبار، أغاني، قرآن كريم، عالمية. اضغط ▶ للاستماع أو **+** لإضافتها لقائمتك بضغطة.
+4. الراديو يستمر عند التنقل بين الصفحات ويظهر شريط صغير في الركن. تشغيل فيديو يوقف الراديو تلقائيًا والعكس.
+5. محطاتك تُحفظ مشفرة مع إعداداتك، وتنتقل لأجهزتك الأخرى عند المزامنة.
+- الراديو يحتاج إنترنت (البث نفسه فقط). روابط `http://` قد لا تعمل إذا فُتح التطبيق عبر `https://`.
+
+### English
+1. Open **Radio** from the side menu (or the bottom bar on phones).
+2. **Add a station:** type a name, paste the live stream link (often ends in mp3, aac or stream), press **Save station**. **Try it** plays without saving.
+3. **Suggested stations:** Arabic, News, Music, Quran, World. Press ▶ to listen or **+** to add with one tap.
+4. Radio keeps playing across pages with a small bar in the corner; starting a video pauses the radio and vice versa.
+5. Your stations are saved, encrypted, with your settings and follow you to other devices when you sync.
+- Radio needs internet (the stream only). `http://` links may not play while the app is opened over `https://`.
+
+## الإعدادات والمعادل | Settings & equalizer
+
+### العربية
+- التبويبات على الجانب (أعلى الصفحة في الهاتف). التبويب الذي تفتحه يبقى مفتوحًا حتى بعد تحديث الصفحة.
+- **المشغل ← المعادل الصوتي:** فعّل المعادل، اختر نمطًا من الأزرار، أو اسحب أي شريط للأعلى لرفع النطاق وللأسفل لخفضه. اضغط الرقم فوق الشريط لرفعه درجة. كل تغيير يُحفظ فور إفلات الشريط وتظهر شارة **تم الحفظ**.
+- اللغة الافتراضية الآن الإنجليزية؛ غيّرها من **عام ← اللغة**.
+
+### English
+- Tabs sit on the side (top on phones). The tab you open stays open after a page refresh.
+- **Player → Equalizer:** switch it on, pick a preset button, or drag any bar up to raise / down to lower a band. Tap the number above a bar to raise it by 1 dB. Every change saves the moment you let go and a **Saved** badge appears.
+- English is now the default language; change it in **General → Language**.
+
+## التحقق من المزامنة | Checking sync
+
+### العربية
+- في **الإعدادات ← الحساب** تظهر شارة **الخادم متصل** أو **الخادم غير متاح** مع عنوان الخادم المستخدم.
+- بعد تسجيل الدخول بالحساب المتزامن تظهر بطاقة **المحفوظ في قاعدة البيانات الآن**: الإعدادات، الإعجابات، المشاهدة لاحقًا، السجل، الأجهزة، وآخر رفع — تُقرأ من قاعدة البيانات نفسها.
+- الحساب المتزامن يعمل فقط عندما تفتح التطبيق من الجهاز الذي يشغّل الخادم (`npm run dev` أو `npx vite preview`) أو من عنوانه في الشبكة. إن كان `VITE_LOCALTUBE_SERVER` لا يستجيب، يجرّب التطبيق عنوان الصفحة نفسها تلقائيًا.
+
+### English
+- **Settings → Account** shows **Server connected** or **Server unreachable** and the server address in use.
+- Once signed in to a synced account, **Saved in the database right now** lists settings, likes, watch later, history, devices and last upload, read back from the database.
+- Synced accounts work when the app is opened from the machine running the server (`npm run dev` or `npx vite preview`) or its network address. If `VITE_LOCALTUBE_SERVER` doesn't answer, the app falls back to the page's own address.
