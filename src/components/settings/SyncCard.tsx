@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Cloud, CloudOff, RefreshCw } from "lucide-react";
+import { CheckCircle2, Cloud, CloudOff, Database, RefreshCw, XCircle } from "lucide-react";
 import { useSession } from "@/context/SessionProvider";
 import { useToast } from "@/hooks/use-toast";
 import {
-  lastSync, serverInfo, serverUrl, setSyncOptions, syncLogin, syncLogout, syncOptions, syncPull, syncPush,
+  lastSync, resolveServer, serverInfo, serverUrl, syncStatus, type ServerStatus, setSyncOptions, syncLogin, syncLogout, syncOptions, syncPull, syncPush,
   syncRegister, syncUser, SyncError, type SyncOptions, type SyncUser,
 } from "@/lib/sync/client";
 
@@ -28,7 +28,14 @@ export function SyncCard() {
   const [busy, setBusy] = useState(false);
   const [last, setLast] = useState(lastSync());
 
-  useEffect(() => { void serverInfo().then((i) => setAvailable(Boolean(i?.sync))); }, []);
+  const [server, setServer] = useState(serverUrl());
+  const [status, setStatus] = useState<ServerStatus | null>(null);
+  const loadStatus = () => syncStatus().then(setStatus).catch(() => setStatus(null));
+
+  useEffect(() => {
+    void resolveServer().then((u) => setServer(u)).then(() => serverInfo()).then((i) => setAvailable(Boolean(i?.sync)));
+  }, []);
+  useEffect(() => { if (available && user) void loadStatus(); }, [available, user]);
 
   const fail = (e: unknown) => {
     const code = e instanceof SyncError ? e.code : "server_error";
@@ -66,7 +73,8 @@ export function SyncCard() {
         history: o.history ? s.history.map((h) => ({ id: h.id, title: h.title, position: h.position, duration: h.duration, at: h.at })) : [],
       });
       setLast(lastSync());
-      toast({ title: L("تمت المزامنة", "Synced") });
+      await loadStatus();
+      toast({ title: L("تمت المزامنة وحُفظت بياناتك في قاعدة البيانات", "Synced — your data is saved in the database") });
     } catch (e) { fail(e); } finally { setBusy(false); }
   };
 
@@ -98,13 +106,19 @@ export function SyncCard() {
         <CardDescription>
           {L("حسابك المحلي يبقى على هذا الجهاز. الحساب المتزامن يحفظ ما تختاره في الخادم الرئيسي لتجده من أي جهاز.",
              "Your local account stays on this device. A synced account keeps what you choose on the main server so you find it on any device.")}
-          <span className="mt-1 block" dir="ltr">{serverUrl()}</span>
+          <span className="mt-2 flex flex-wrap items-center gap-2">
+            <Badge variant={available ? "secondary" : "destructive"} className="gap-1">
+              {available === null ? L("جارٍ الفحص…", "Checking…") : available ? L("الخادم متصل", "Server connected") : L("الخادم غير متاح", "Server unreachable")}
+            </Badge>
+            <span dir="ltr" className="text-xs">{server}</span>
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {available === false && (
           <p className="rounded-lg bg-secondary/60 p-3 text-sm text-muted-foreground">
-            {L("الخادم الرئيسي غير مُعدّ بعد. اتبع خطوة «الخادم الرئيسي» في دليل التشغيل.", "The main server isn't set up yet. Follow the “Main server” step in the documentation.")}
+            {L("تعذّر الوصول للخادم الرئيسي من هذا العنوان، أو أنه بدون قاعدة بيانات. شغّل التطبيق على جهاز الخادم وافتحه من عنوانه في الشبكة، أو راجع خطوة «الخادم الرئيسي» في دليل التشغيل.",
+               "The main server can't be reached from here, or it has no database. Run the app on the server computer and open it from its network address, or see the “Main server” step in the documentation.")}
           </p>
         )}
         {available && !user && (
@@ -140,6 +154,31 @@ export function SyncCard() {
                   {label}<Switch checked={opts[k]} onCheckedChange={() => toggle(k)} />
                 </label>
               ))}
+            </div>
+            <div className="rounded-xl border border-border bg-secondary/30 p-3">
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                <Database className="h-4 w-4" />{L("المحفوظ في قاعدة البيانات الآن", "Saved in the database right now")}
+              </div>
+              {!status ? (
+                <p className="text-xs text-muted-foreground">{L("لم تُقرأ حالة الخادم بعد. اضغط «مزامنة الآن».", "Not read yet. Press “Sync now”.")}</p>
+              ) : (
+                <ul className="grid gap-1.5 text-sm sm:grid-cols-2">
+                  {([
+                    [L("الإعدادات", "Settings"), status.settingsSavedAt ? new Date(status.settingsSavedAt).toLocaleString() : null],
+                    [L("الإعجابات", "Likes"), status.likes],
+                    [L("المشاهدة لاحقًا", "Watch later"), status.watchLater],
+                    [L("سجل المشاهدة", "History"), status.history],
+                    [L("الأجهزة", "Devices"), status.devices],
+                    [L("آخر رفع", "Last upload"), status.lastPushAt ? new Date(status.lastPushAt).toLocaleString() : null],
+                  ] as [string, string | number | null][]).map(([label, value]) => (
+                    <li key={label} className="flex items-center gap-2">
+                      {value === null ? <XCircle className="h-4 w-4 text-muted-foreground" /> : <CheckCircle2 className="h-4 w-4 text-primary" />}
+                      <span className="text-muted-foreground">{label}:</span>
+                      <span className="font-medium">{value ?? L("لا شيء بعد", "nothing yet")}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
               {L("آخر مزامنة: ", "Last sync: ")}{last ? new Date(last).toLocaleString() : "—"}
