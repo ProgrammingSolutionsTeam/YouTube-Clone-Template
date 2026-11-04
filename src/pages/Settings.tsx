@@ -1,15 +1,14 @@
 import { NetworkShareCard } from "@/components/settings/NetworkShareCard";
 import { SyncCard } from "@/components/settings/SyncCard";
-import { AudioSettingsCard, ShortsSettingsCard, REFRESH_OPTIONS } from "@/components/settings/MediaSettingsCards";
+import { AudioSettingsCard, ShortsSettingsCard, REFRESH_OPTIONS, Row, CommitSlider } from "@/components/settings/MediaSettingsCards";
 import { refreshAllRoots } from "@/components/AutoRefresh";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { AppLayout, PageHeading } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,6 +29,14 @@ import {
 import {
   AlertCircle,
   Check,
+  Cog,
+  Library as LibraryIcon,
+  Lock,
+  Palette,
+  PlayCircle,
+  Smartphone,
+  UserRound,
+  Wrench,
   Download,
   FolderOpen,
   Plus,
@@ -50,10 +57,30 @@ import type { RootRecord, ScanProgress } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 import { isNativeApp, requestStorageAccess } from "@/lib/native/android";
 
+const TAB_KEY = "localtube.settings.tab";
+type TabDef = { value: string; labelKey: string; label?: [string, string]; hint: [string, string]; icon: typeof Cog };
+const SETTINGS_TABS: TabDef[] = [
+  { value: "general", labelKey: "settings.tab.general", icon: Palette, hint: ["اللغة والمظهر والألوان", "Language, theme and colours"] },
+  { value: "roots", labelKey: "settings.tab.roots", icon: FolderOpen, hint: ["مجلدات الفيديو والمشاركة", "Video folders and sharing"] },
+  { value: "player", labelKey: "settings.tab.player", icon: PlayCircle, hint: ["التشغيل والمعادل الصوتي", "Playback and equalizer"] },
+  { value: "scrolling", labelKey: "nav.scrolling", icon: Smartphone, hint: ["المقاطع القصيرة", "Short clips"] },
+  { value: "library", labelKey: "settings.tab.library", icon: LibraryIcon, hint: ["العرض والترتيب", "Layout and sorting"] },
+  { value: "privacy", labelKey: "settings.tab.privacy", icon: Lock, hint: ["السجل والخصوصية", "History and privacy"] },
+  { value: "account", labelKey: "settings.tab.account", icon: UserRound, hint: ["الحساب والمزامنة", "Account and sync"] },
+  { value: "advanced", labelKey: "settings.tab.advanced", icon: Wrench, hint: ["النسخ والمسح", "Export and reset"] },
+];
+const pickTab = (v: string | null) => (v && SETTINGS_TABS.some((tb) => tb.value === v) ? v : null);
+
 const Settings = () => {
   const { t, settings, updateSettings, resetSettings, user, folder, updateAccount, exportData, wipeEverything } =
     useSession();
   const { toast } = useToast();
+  const [params, setParams] = useSearchParams();
+  const tab = pickTab(params.get("tab")) ?? pickTab(localStorage.getItem(TAB_KEY)) ?? "general";
+  const changeTab = (value: string) => {
+    localStorage.setItem(TAB_KEY, value);
+    setParams((prev) => { const next = new URLSearchParams(prev); next.set("tab", value); return next; }, { replace: true });
+  };
 
   const [roots, setRoots] = useState<RootRecord[]>([]);
   const [grants, setGrants] = useState<Record<string, boolean>>({});
@@ -219,43 +246,38 @@ const Settings = () => {
     URL.revokeObjectURL(url);
   };
 
-  const Row = ({
-    label,
-    hint,
-    children,
-  }: {
-    label: string;
-    hint?: string;
-    children: React.ReactNode;
-  }) => (
-    <div className="flex flex-wrap items-center justify-between gap-3 py-2">
-      <div className="min-w-0">
-        <div className="text-sm font-medium">{label}</div>
-        {hint && <div className="text-xs text-muted-foreground">{hint}</div>}
-      </div>
-      <div className="shrink-0">{children}</div>
-    </div>
-  );
-
   return (
     <AppLayout>
-      <div className="mx-auto max-w-4xl">
+      <div className="w-full">
         <PageHeading title={t("settings.title")} description={t("settings.subtitle")} />
 
-        <Tabs defaultValue="general">
-          <TabsList className="mb-5 w-full justify-start overflow-x-auto">
-            <TabsTrigger value="general">{t("settings.tab.general")}</TabsTrigger>
-            <TabsTrigger value="roots">{t("settings.tab.roots")}</TabsTrigger>
-            <TabsTrigger value="player">{t("settings.tab.player")}</TabsTrigger>
-            <TabsTrigger value="scrolling">{t("nav.scrolling")}</TabsTrigger>
-            <TabsTrigger value="library">{t("settings.tab.library")}</TabsTrigger>
-            <TabsTrigger value="privacy">{t("settings.tab.privacy")}</TabsTrigger>
-            <TabsTrigger value="account">{t("settings.tab.account")}</TabsTrigger>
-            <TabsTrigger value="advanced">{t("settings.tab.advanced")}</TabsTrigger>
+        <Tabs
+          value={tab}
+          onValueChange={changeTab}
+          orientation="vertical"
+          className="grid items-start gap-5 lg:grid-cols-[264px_minmax(0,1fr)] xl:gap-8"
+        >
+          <TabsList className="flex h-auto w-full items-stretch justify-start gap-1.5 overflow-x-auto rounded-2xl border border-border bg-card p-2 shadow-sm lg:sticky lg:top-20 lg:flex-col lg:overflow-visible">
+            {SETTINGS_TABS.map((tb) => (
+              <TabsTrigger
+                key={tb.value}
+                value={tb.value}
+                className="group shrink-0 justify-start gap-3 rounded-xl px-4 py-3 text-start text-[15px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md lg:w-full"
+              >
+                <tb.icon className="h-5 w-5 shrink-0" />
+                <span className="min-w-0">
+                  <span className="block">{tb.label ? (settings.language === "ar" ? tb.label[0] : tb.label[1]) : t(tb.labelKey)}</span>
+                  <span className="hidden truncate text-xs font-normal opacity-75 lg:block">
+                    {settings.language === "ar" ? tb.hint[0] : tb.hint[1]}
+                  </span>
+                </span>
+              </TabsTrigger>
+            ))}
           </TabsList>
 
+          <div className="min-w-0">
           {/* ----------------------------------------------------- general */}
-          <TabsContent value="general" className="space-y-4">
+          <TabsContent value="general" className="mt-0 space-y-5">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">{t("settings.tab.general")}</CardTitle>
@@ -310,14 +332,8 @@ const Settings = () => {
                   </div>
                 </div>
                 <Row label={t("settings.fontScale")} hint={`${Math.round(settings.fontScale * 100)}%`}>
-                  <div className="w-[180px]">
-                    <Slider
-                      min={0.85}
-                      max={1.3}
-                      step={0.05}
-                      value={[settings.fontScale]}
-                      onValueChange={([v]) => void updateSettings({ fontScale: v })}
-                    />
+                  <div className="w-[220px]">
+                    <CommitSlider min={0.85} max={1.3} step={0.05} value={settings.fontScale} onCommit={(v) => void updateSettings({ fontScale: v })} />
                   </div>
                 </Row>
                 <Row label={t("settings.reduceMotion")}>
@@ -331,7 +347,7 @@ const Settings = () => {
           </TabsContent>
 
           {/* ------------------------------------------------------- roots */}
-          <TabsContent value="roots" className="space-y-4">
+          <TabsContent value="roots" className="mt-0 grid gap-5 2xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] 2xl:items-start">
             <NetworkShareCard localRoots={roots} />
             <Card>
               <CardHeader>
@@ -563,21 +579,15 @@ const Settings = () => {
           </TabsContent>
 
           {/* ------------------------------------------------------ player */}
-          <TabsContent value="player" className="space-y-4">
+          <TabsContent value="player" className="mt-0 grid gap-5 2xl:grid-cols-2 2xl:items-start">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">{t("settings.tab.player")}</CardTitle>
               </CardHeader>
               <CardContent className="divide-y divide-border">
                 <Row label={t("player.volume")} hint={`${Math.round(settings.player.volume * 100)}%`}>
-                  <div className="w-[180px]">
-                    <Slider
-                      min={0}
-                      max={1}
-                      step={0.05}
-                      value={[settings.player.volume]}
-                      onValueChange={([v]) => void updateSettings({ player: { volume: v } })}
-                    />
+                  <div className="w-[220px]">
+                    <CommitSlider min={0} max={1} step={0.05} value={settings.player.volume} onCommit={(v) => void updateSettings({ player: { volume: v } })} />
                   </div>
                 </Row>
                 <Row label={t("player.speed")}>
@@ -649,25 +659,13 @@ const Settings = () => {
                   </Select>
                 </Row>
                 <Row label={t("player.subtitleDelay")} hint={`${settings.player.subtitleDelay}s`}>
-                  <div className="w-[180px]">
-                    <Slider
-                      min={-10}
-                      max={10}
-                      step={0.5}
-                      value={[settings.player.subtitleDelay]}
-                      onValueChange={([v]) => void updateSettings({ player: { subtitleDelay: v } })}
-                    />
+                  <div className="w-[220px]">
+                    <CommitSlider min={-10} max={10} step={0.5} value={settings.player.subtitleDelay} onCommit={(v) => void updateSettings({ player: { subtitleDelay: v } })} />
                   </div>
                 </Row>
                 <Row label={t("player.seekStep")} hint={`${settings.player.seekStep}s`}>
-                  <div className="w-[180px]">
-                    <Slider
-                      min={1}
-                      max={30}
-                      step={1}
-                      value={[settings.player.seekStep]}
-                      onValueChange={([v]) => void updateSettings({ player: { seekStep: v } })}
-                    />
+                  <div className="w-[220px]">
+                    <CommitSlider min={1} max={30} step={1} value={settings.player.seekStep} onCommit={(v) => void updateSettings({ player: { seekStep: v } })} />
                   </div>
                 </Row>
               </CardContent>
@@ -675,12 +673,12 @@ const Settings = () => {
             <AudioSettingsCard />
           </TabsContent>
 
-          <TabsContent value="scrolling" className="space-y-4">
+          <TabsContent value="scrolling" className="mt-0 space-y-5">
             <ShortsSettingsCard />
           </TabsContent>
 
           {/* ----------------------------------------------------- library */}
-          <TabsContent value="library" className="space-y-4">
+          <TabsContent value="library" className="mt-0 space-y-5">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">{t("settings.tab.library")}</CardTitle>
@@ -749,14 +747,8 @@ const Settings = () => {
                   />
                 </Row>
                 <Row label={t("common.items")} hint={String(settings.library.itemsPerPage)}>
-                  <div className="w-[180px]">
-                    <Slider
-                      min={12}
-                      max={200}
-                      step={12}
-                      value={[settings.library.itemsPerPage]}
-                      onValueChange={([v]) => void updateSettings({ library: { itemsPerPage: v } })}
-                    />
+                  <div className="w-[220px]">
+                    <CommitSlider min={12} max={200} step={12} value={settings.library.itemsPerPage} onCommit={(v) => void updateSettings({ library: { itemsPerPage: v } })} />
                   </div>
                 </Row>
               </CardContent>
@@ -764,7 +756,7 @@ const Settings = () => {
           </TabsContent>
 
           {/* ----------------------------------------------------- privacy */}
-          <TabsContent value="privacy" className="space-y-4">
+          <TabsContent value="privacy" className="mt-0 space-y-5">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">{t("settings.tab.privacy")}</CardTitle>
@@ -777,14 +769,8 @@ const Settings = () => {
                   />
                 </Row>
                 <Row label={t("privacy.historyLimit")} hint={String(settings.privacy.historyLimit)}>
-                  <div className="w-[180px]">
-                    <Slider
-                      min={50}
-                      max={2000}
-                      step={50}
-                      value={[settings.privacy.historyLimit]}
-                      onValueChange={([v]) => void updateSettings({ privacy: { historyLimit: v } })}
-                    />
+                  <div className="w-[220px]">
+                    <CommitSlider min={50} max={2000} step={50} value={settings.privacy.historyLimit} onCommit={(v) => void updateSettings({ privacy: { historyLimit: v } })} />
                   </div>
                 </Row>
                 <Row label={t("privacy.saveResume")}>
@@ -804,7 +790,7 @@ const Settings = () => {
           </TabsContent>
 
           {/* ----------------------------------------------------- account */}
-          <TabsContent value="account" className="space-y-4">
+          <TabsContent value="account" className="mt-0 space-y-5">
             <SyncCard />
             <Card>
               <CardHeader>
@@ -816,7 +802,7 @@ const Settings = () => {
                   </span>
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="mt-0 space-y-5">
                 {!user ? (
                   <>
                     <p className="rounded-lg bg-secondary/60 p-3 text-sm text-muted-foreground">
@@ -879,7 +865,7 @@ const Settings = () => {
           </TabsContent>
 
           {/* ---------------------------------------------------- advanced */}
-          <TabsContent value="advanced" className="space-y-4">
+          <TabsContent value="advanced" className="mt-0 space-y-5">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">{t("settings.tab.advanced")}</CardTitle>
@@ -912,6 +898,7 @@ const Settings = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          </div>
         </Tabs>
       </div>
     </AppLayout>
