@@ -160,6 +160,26 @@ async function pull(me: Authed, res: ServerResponse) {
   send(res, 200, { settings: settings[0] ?? null, likes, watchLater: later, history, roots });
 }
 
+async function status(me: Authed, res: ServerResponse) {
+  const rows = await sql<any>(
+    `select (select updated_at from user_settings where user_id = $1 and settings <> '{}'::jsonb) as settings_saved_at,
+            (select count(*) from likes where user_id = $1 and not deleted) as likes,
+            (select count(*) from watch_later where user_id = $1 and not deleted) as watch_later,
+            (select count(*) from watch_history where user_id = $1 and not deleted) as history,
+            (select count(*) from published_roots where user_id = $1) as roots,
+            (select count(*) from devices where user_id = $1) as devices,
+            (select count(*) from sessions where user_id = $1 and revoked_at is null and expires_at > now()) as sessions,
+            (select max(last_pushed_at) from sync_state where user_id = $1) as last_push_at,
+            now() as server_time`, [me.userId]);
+  const r = rows[0] ?? {};
+  send(res, 200, {
+    settingsSavedAt: r.settings_saved_at ?? null,
+    likes: Number(r.likes ?? 0), watchLater: Number(r.watch_later ?? 0), history: Number(r.history ?? 0),
+    roots: Number(r.roots ?? 0), devices: Number(r.devices ?? 0), sessions: Number(r.sessions ?? 0),
+    lastPushAt: r.last_push_at ?? null, serverTime: r.server_time,
+  });
+}
+
 async function push(me: Authed, req: Req, res: ServerResponse) {
   const b = req.body ?? {};
   const device = str(b.deviceKey, 80) || "unknown";
@@ -291,6 +311,7 @@ async function route(req: Req, res: ServerResponse, url: URL): Promise<boolean> 
     send(res, 200, { ok: true });
   }
   else if (p === "/api/sync/pull") await pull(me, res);
+  else if (p === "/api/sync/status") await status(me, res);
   else if (p === "/api/sync/push" && req.method === "POST") await push(me, req, res);
   else if (p === "/api/support/reply" && req.method === "POST") await reply(me, req, res);
   else if (p === "/api/support") await support(me, req, res);
