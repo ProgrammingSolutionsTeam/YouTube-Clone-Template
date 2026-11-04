@@ -255,7 +255,7 @@ const Settings = () => {
           value={tab}
           onValueChange={changeTab}
           orientation="vertical"
-          className="grid items-start gap-5 lg:grid-cols-[264px_minmax(0,1fr)] xl:gap-8"
+          className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[264px_minmax(0,1fr)] xl:gap-8"
         >
           <TabsList className="flex h-auto w-full items-stretch justify-start gap-1.5 overflow-x-auto rounded-2xl border border-border bg-card p-2 shadow-sm lg:sticky lg:top-20 lg:flex-col lg:overflow-visible">
             {SETTINGS_TABS.map((tb) => (
@@ -347,7 +347,7 @@ const Settings = () => {
           </TabsContent>
 
           {/* ------------------------------------------------------- roots */}
-          <TabsContent value="roots" className="mt-0 grid gap-5 2xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] 2xl:items-start">
+          <TabsContent value="roots" className="mt-0 grid grid-cols-1 gap-5 2xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] 2xl:items-start">
             <NetworkShareCard localRoots={roots} />
             <Card>
               <CardHeader>
@@ -579,7 +579,7 @@ const Settings = () => {
           </TabsContent>
 
           {/* ------------------------------------------------------ player */}
-          <TabsContent value="player" className="mt-0 grid gap-5 2xl:grid-cols-2 2xl:items-start">
+          <TabsContent value="player" className="mt-0 grid grid-cols-1 gap-5 2xl:grid-cols-2 2xl:items-start">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">{t("settings.tab.player")}</CardTitle>
