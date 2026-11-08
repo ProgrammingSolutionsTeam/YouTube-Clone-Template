@@ -1,5 +1,10 @@
 # Roadmap
 
+## Current review and improvement plan
+- [ ] Review accounts/sync, settings/sharing, and player/format support; confirm defects before proposing fixes.
+- [ ] Present a phased improvement plan for approval, including administrator-assisted password recovery, offline synced sign-in, sync consent/category checkboxes, reliable saves, and per-root sharing consent.
+- [ ] Implement approved phases and verify each with tests and real user flows (awaiting plan approval).
+
 - [x] Settings page redesign: full width, big clear tabs, remember open tab after reload
 - [x] Equalizer: clear preset buttons, vertical bottom-to-top band sliders that drag, visible "saved" state
 - [x] English as default language
