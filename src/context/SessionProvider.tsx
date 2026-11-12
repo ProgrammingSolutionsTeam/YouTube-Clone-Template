@@ -57,6 +57,7 @@ import {
 import { dirFor, translate } from "@/lib/i18n";
 import { resetIndex } from "@/lib/core/indexdb";
 import { invalidateLibrary } from "@/lib/media/library";
+import { createMutationQueue, validateLocalPassword } from "@/lib/vault/mutations";
 
 const DEVICE_SECRET_KEY = "medialib.device.secret";
 const DEVICE_SALT_KEY = "medialib.device.salt";
@@ -82,6 +83,8 @@ interface SessionValue {
   t: (key: string) => string;
   dir: "rtl" | "ltr";
   updateSettings: (patch: DeepPartial<AppSettings>) => Promise<void>;
+  saveState: "idle" | "saving" | "saved" | "error";
+  importProfile: (profile: { settings?: Partial<AppSettings>; favorites: FavoritesFile; watchLater: WatchLaterFile; history: HistoryEntry[] }) => Promise<void>;
   resetSettings: () => Promise<void>;
   toggleFavorite: (id: string) => Promise<boolean>;
   toggleFavoriteChannel: (key: string) => Promise<boolean>;
@@ -181,9 +184,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [accountCount, setAccountCount] = useState(0);
   const keyRef = useRef<CryptoKey | null>(null);
+  const profileRef = useRef(folder);
+  const [saveState, setSaveState] = useState<SessionValue["saveState"]>("idle");
+  const settingsQueue = useRef(createMutationQueue(DEFAULT_SETTINGS, async (next) => {
+    const key = keyRef.current;
+    if (!key) throw new Error("storage_unavailable");
+    await writeSealed(profileRef.current, FILES.settings, key, next);
+  }, (next) => { setSettings(next); applyAppearance(next); }));
 
   const loadProfile = useCallback(async (nextFolder: string, key: CryptoKey) => {
     keyRef.current = key;
+    profileRef.current = nextFolder;
     setFolder(nextFolder);
 
     let stored = await readSealed<Partial<AppSettings>>(nextFolder, FILES.settings, key);
@@ -194,6 +205,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       await writeSealed(nextFolder, FILES.settings, key, mergeSettings(stored));
     }
     const merged = mergeSettings(stored);
+    settingsQueue.current.replace(merged);
     setSettings(merged);
     applyAppearance(merged);
 
@@ -253,7 +265,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const persist = useCallback(
     async (name: string, value: unknown) => {
-      if (!keyRef.current) return;
+      if (!keyRef.current) throw new Error("storage_unavailable");
       await writeSealed(folder, name, keyRef.current, value);
     },
     [folder],
@@ -261,7 +273,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const updateSettings = useCallback(
     async (patch: DeepPartial<AppSettings>) => {
-      const next = mergeSettings({
+      setSaveState("saving");
+      try { await settingsQueue.current.mutate((settings) => mergeSettings({
         ...settings,
         ...patch,
         library: { ...settings.library, ...(patch.library ?? {}) },
@@ -270,25 +283,30 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         scanner: { ...settings.scanner, ...(patch.scanner ?? {}) },
         shorts: { ...settings.shorts, ...(patch.shorts ?? {}) },
         radio: { ...settings.radio, ...(patch.radio ?? {}) },
-      } as AppSettings);
-      setSettings(next);
-      applyAppearance(next);
-      await persist(FILES.settings, next);
+      } as AppSettings)); setSaveState("saved"); }
+      catch (error) { setSaveState("error"); throw error; }
     },
-    [persist, settings],
+    [],
   );
 
   const resetSettings = useCallback(async () => {
-    setSettings(DEFAULT_SETTINGS);
-    applyAppearance(DEFAULT_SETTINGS);
-    await persist(FILES.settings, DEFAULT_SETTINGS);
-  }, [persist]);
+    await settingsQueue.current.mutate(() => DEFAULT_SETTINGS);
+  }, []);
+
+  const importProfile = useCallback(async (profile: { settings?: Partial<AppSettings>; favorites: FavoritesFile; watchLater: WatchLaterFile; history: HistoryEntry[] }) => {
+    await persist(FILES.favorites, profile.favorites);
+    await persist(FILES.watchLater, profile.watchLater);
+    await persist(FILES.history, { entries: profile.history });
+    if (profile.settings) await updateSettings(profile.settings);
+    setFavorites(profile.favorites); setWatchLater(profile.watchLater); setHistory(profile.history);
+  }, [persist, updateSettings]);
 
   const toggleFavorite = useCallback(
     async (id: string) => {
       const has = favorites.items.includes(id);
       const next: FavoritesFile = {
         ...favorites,
+        mutations: { ...favorites.mutations, [id]: { at: Date.now(), deleted: has } },
         items: has ? favorites.items.filter((x) => x !== id) : [id, ...favorites.items],
       };
       setFavorites(next);
@@ -316,6 +334,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     async (id: string) => {
       const has = watchLater.items.includes(id);
       const next: WatchLaterFile = {
+        mutations: { ...watchLater.mutations, [id]: { at: Date.now(), deleted: has } },
         items: has ? watchLater.items.filter((x) => x !== id) : [id, ...watchLater.items],
       };
       setWatchLater(next);
@@ -350,6 +369,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const signUp = useCallback(
     async ({ displayName, email, password }: { displayName: string; email: string; password: string }) => {
+      validateLocalPassword(password);
       const normalizedEmail = email.trim().toLowerCase();
       if (await users.byEmail(normalizedEmail)) throw new Error("account.exists");
       const existing = await users.all();
@@ -374,8 +394,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         avatarColor: ACCENTS[existing.length % ACCENTS.length].hsl,
         role: existing.length === 0 ? "admin" : "user",
       };
-      await users.put(record);
-
       // move the anonymous session folder into the account folder
       const { secret, salt } = deviceSecret();
       const deviceKey = await deriveDeviceKey(secret, salt);
@@ -383,6 +401,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         { folder: `sessions/${sessionId()}`, key: deviceKey },
         { folder: `users/${slug}`, key: dek },
       );
+      await users.put(record);
 
       sessionKeyCache.set(slug, dek);
       await rememberKey(slug, dek, deviceKey);
@@ -453,6 +472,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         next.email = normalized;
       }
       if (newPassword) {
+        validateLocalPassword(newPassword);
         const kek = await deriveKek(currentPassword, fromBase64(record.kekSalt));
         const dek = await unwrapDek(record.wrappedDek, kek);
         const newKekSalt = randomBytes(16);
@@ -504,6 +524,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       user,
       folder,
       settings,
+      saveState,
+      importProfile,
       favorites,
       watchLater,
       history,
@@ -535,6 +557,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       recordWatch,
       resetSettings,
       settings,
+      saveState,
+      importProfile,
       signIn,
       signOut,
       signUp,

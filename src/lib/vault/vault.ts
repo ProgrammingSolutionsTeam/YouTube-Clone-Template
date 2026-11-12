@@ -86,12 +86,13 @@ async function withStore<T>(
 ): Promise<T> {
   const db = await openVault();
   const tx = db.transaction([name], mode);
-  const result = await fn(tx.objectStore(name));
-  await new Promise<void>((resolve, reject) => {
+  const done = new Promise<void>((resolve, reject) => {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error);
   });
+  const result = await fn(tx.objectStore(name));
+  await done;
   return result;
 }
 
@@ -160,15 +161,17 @@ export async function migrateFolder(
   to: { folder: string; key: CryptoKey },
 ): Promise<void> {
   const rows = await vaultFiles.list(from.folder);
-  for (const row of rows) {
-    try {
-      const value = await open<unknown>(from.key, { iv: row.iv, data: row.data });
-      await writeSealed(to.folder, row.name, to.key, value);
-    } catch {
-      /* unreadable row is dropped rather than corrupting the new folder */
-    }
-  }
-  await vaultFiles.removeFolder(from.folder);
+  // Crypto completes before the transaction: IndexedDB transactions cannot
+  // remain active across WebCrypto awaits. Any unreadable row leaves all source data intact.
+  const staged = await Promise.all(rows.map(async (row): Promise<FileRecord> => {
+    const value = await open<unknown>(from.key, row);
+    const payload = await seal(to.key, value);
+    return { ...row, ...payload, folder: to.folder, path: `${to.folder}/${row.name}`, at: Date.now() };
+  }));
+  await withStore(VSTORE.files, "readwrite", (store) => {
+    staged.forEach((row) => store.put(row));
+    rows.forEach((row) => store.delete(row.path));
+  });
 }
 
 /* ------------------------------------------------------------------ session */

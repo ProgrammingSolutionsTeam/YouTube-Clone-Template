@@ -239,10 +239,12 @@ export interface HistoryEntry {
 export interface FavoritesFile {
   items: string[];
   channels: string[];
+  mutations?: Record<string, { at: number; deleted: boolean }>;
 }
 
 export interface WatchLaterFile {
   items: string[];
+  mutations?: Record<string, { at: number; deleted: boolean }>;
 }
 
 export interface HistoryFile {

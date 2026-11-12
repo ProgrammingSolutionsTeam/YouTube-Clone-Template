@@ -59,6 +59,7 @@ function useSavedFlash() {
 
 export function AudioSettingsCard() {
   const { t, settings, updateSettings } = useSession();
+  const { toast } = useToast();
   const p = settings.player;
   const ar = settings.language === "ar";
   const [bands, setBands] = useState<number[]>(p.eqBands);
@@ -67,8 +68,8 @@ export function AudioSettingsCard() {
 
   const save = async (patch: Parameters<typeof updateSettings>[0]["player"]) => {
     resumeAudio();
-    await updateSettings({ player: patch });
-    flash();
+    try { await updateSettings({ player: patch }); flash(); }
+    catch { setBands(p.eqBands); toast({ title: ar ? "تعذر الحفظ، حاول مرة أخرى" : "Couldn't save. Try again.", variant: "destructive" }); }
   };
 
   const moveBand = (index: number, value: number) =>
