@@ -142,7 +142,7 @@ export function canBrowserProbablyPlay(kind: MediaKind, ext: string, mime?: stri
     const r = el.canPlayType(c);
     if (r === "probably" || r === "maybe") return true;
   }
-  return kind === "video" ? BROWSER_NATIVE_VIDEO.includes(ext) : BROWSER_NATIVE_AUDIO.includes(ext);
+  return false;
 }
 
 export function guessMime(kind: MediaKind, ext: string): string {

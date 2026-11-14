@@ -40,6 +40,7 @@ export interface TranscodeSession {
   url: string;
   mode: "remux" | "stream" | "bake";
   destroy: () => void;
+  seek?: (time: number) => void;
 }
 
 type FFmpegInstance = import("@ffmpeg/ffmpeg").FFmpeg;
@@ -94,7 +95,7 @@ async function writeInput(file: File, name: string): Promise<FFmpegInstance> {
 function inputName(file: File): string {
   const dot = file.name.lastIndexOf(".");
   const ext = dot === -1 ? "bin" : file.name.slice(dot + 1).toLowerCase().replace(/[^a-z0-9]/g, "");
-  return `input.${ext || "bin"}`;
+  return `input-${crypto.randomUUID()}.${ext || "bin"}`;
 }
 
 const VIDEO_ARGS = [
@@ -214,8 +215,7 @@ async function streamSegments(
     source.addEventListener("error", () => reject(new Error("mediasource_error")));
   });
 
-  const buffer = await opened;
-
+  void opened.then(async (buffer) => {
   const idle = () =>
     new Promise<void>((resolve) => {
       if (!buffer.updating) return resolve();
@@ -271,6 +271,11 @@ async function streamSegments(
         if (!data || data.byteLength < 512) throw new Error("segment_empty");
         await idle();
         if (disposed) return;
+        const evictBefore = Math.max(0, getPlayhead() - 30);
+        if (evictBefore > 0 && buffer.buffered.length && buffer.buffered.start(0) < evictBefore) {
+          buffer.remove(0, evictBefore);
+          await idle();
+        }
         buffer.timestampOffset = cursor;
         buffer.appendBuffer(data.slice().buffer as ArrayBuffer);
         await idle();
@@ -295,7 +300,8 @@ async function streamSegments(
     }
   };
 
-  void pump();
+  await pump();
+  }).catch(error => { if (!disposed) onStatus({ stage: "error", message: String(error) }); });
 
   return {
     url,
@@ -311,8 +317,8 @@ async function streamSegments(
       void ff.deleteFile(name).catch(() => undefined);
     },
     // exposed through the session object below
-    ...({ seek: (time: number) => (requestedSeek = time) } as object),
-  } as TranscodeSession & { seek?: (time: number) => void };
+    seek: (time: number) => { requestedSeek = time; },
+  };
 }
 
 export interface FallbackRequest {
@@ -324,6 +330,8 @@ export interface FallbackRequest {
   startAt?: number;
   onStatus: (status: TranscodeStatus) => void;
   getPlayhead?: () => number;
+  signal?: AbortSignal;
+  forceTranscode?: boolean;
 }
 
 /**
@@ -331,11 +339,16 @@ export interface FallbackRequest {
  */
 export async function openFallback(request: FallbackRequest): Promise<TranscodeSession & { seek?: (t: number) => void }> {
   const { file, kind, duration, startAt = 0, onStatus, getPlayhead } = request;
+  if (file.size > 512 * 1024 * 1024) throw new Error("conversion_size_limit_512mb");
+  request.signal?.throwIfAborted();
+  const abort = () => { void releaseEngine(); };
+  request.signal?.addEventListener("abort", abort, { once: true });
   if (!transcodingSupported()) throw new Error("wasm_unsupported");
   onStatus({ stage: "loading" });
 
   if (kind === "video") {
-    const remuxed = await tryRemux(file, onStatus);
+    const remuxed = request.forceTranscode ? null : await tryRemux(file, onStatus);
+    request.signal?.throwIfAborted();
     if (remuxed) return remuxed;
     if (duration && duration > 45 && mediaSourceSupported()) {
       return streamSegments(file, duration, onStatus, getPlayhead ?? (() => 0), startAt);

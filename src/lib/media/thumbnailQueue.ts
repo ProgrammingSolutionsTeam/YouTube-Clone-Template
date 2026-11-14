@@ -9,8 +9,13 @@ const listeners = new Map<string, Set<Listener>>();
 let active = 0;
 const MAX_ACTIVE = 1;
 
-function notify(id: string, url: string | null) {
-  listeners.get(id)?.forEach((listener) => listener(url));
+async function notify(id: string) {
+  // Each card owns its own URL; unmounting one must not revoke another's image.
+  for (const listener of [...(listeners.get(id) ?? [])]) {
+    const url = await thumbnailUrl(id);
+    if (listeners.get(id)?.has(listener)) listener(url);
+    else if (url) URL.revokeObjectURL(url);
+  }
 }
 
 async function run() {
@@ -21,14 +26,15 @@ async function run() {
   try {
     const cached = await thumbnailUrl(item.id);
     if (cached) {
-      notify(item.id, cached);
+      URL.revokeObjectURL(cached);
+      await notify(item.id);
       return;
     }
     const probe = await probeItem(item, { thumbnail: true });
     if (!probe.error) await saveProbe(item, probe);
-    notify(item.id, await thumbnailUrl(item.id));
+    await notify(item.id);
   } catch {
-    notify(item.id, null);
+    listeners.get(item.id)?.forEach(listener => listener(null));
   } finally {
     active -= 1;
     queued.delete(item.id);
@@ -50,6 +56,10 @@ export function subscribeThumbnail(item: MediaItem, listener: Listener): () => v
   queueThumbnail(item);
   return () => {
     set.delete(listener);
-    if (!set.size) listeners.delete(item.id);
+    if (!set.size) {
+      listeners.delete(item.id);
+      const index = queue.findIndex(q => q.id === item.id);
+      if (index >= 0) { queue.splice(index, 1); queued.delete(item.id); }
+    }
   };
 }

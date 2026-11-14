@@ -13,6 +13,6 @@ export async function requestStorageAccess(): Promise<boolean> {
     const next = await Filesystem.requestPermissions();
     return next.publicStorage === "granted";
   } catch {
-    return true; // Android 13+ media picker works without the legacy permission
+    return false; // A native bridge failure is not proof that access was granted.
   }
 }

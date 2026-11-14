@@ -34,7 +34,7 @@ interface WorkerError {
 class ScannerService {
   private worker: Worker | null = null;
   private listeners = new Set<Listener>();
-  private queue: { root: RootRecord; mode: "full" | "incremental"; deepDetect: boolean }[] = [];
+  private queue: { root: RootRecord; mode: "full" | "incremental"; deepDetect: boolean; resolve: () => void }[] = [];
   private current: ScanProgress | null = null;
   private resolveCurrent: (() => void) | null = null;
 
@@ -61,21 +61,16 @@ class ScannerService {
     // Fallback roots have no directory handle; they are re-indexed by re-picking
     // the folder in Settings, so there is nothing to walk here.
     if (!root.handle) return Promise.resolve();
-    this.queue.push({ root, mode, deepDetect });
-    void this.drain();
     return new Promise((resolve) => {
-      const unsubscribe = this.subscribe((progress) => {
-        if (progress && progress.rootId === root.id && (progress.state === "done" || progress.state === "error")) {
-          unsubscribe();
-          resolve();
-        }
-      });
+      this.queue.push({ root, mode, deepDetect, resolve });
+      void this.drain();
     });
   }
 
   cancel() {
-    if (!this.worker || !this.current) return;
+    this.queue.forEach(job => job.resolve());
     this.queue = [];
+    if (!this.worker || !this.current) return;
     this.current = { ...this.current, state: "cancelling" };
     this.emit();
     this.worker.postMessage({ type: "cancel" });
@@ -89,6 +84,8 @@ class ScannerService {
     };
     this.worker.onerror = (event) => {
       log.error("scanner", "worker crashed", { message: event.message });
+      this.worker?.terminate();
+      this.worker = null;
       if (this.current) {
         this.current = { ...this.current, state: "error", error: event.message, finishedAt: Date.now() };
         this.emit();
@@ -128,12 +125,10 @@ class ScannerService {
     this.current = finished;
     this.emit();
 
-    const root = await rootsStore.get(finished.rootId);
-    if (root) {
-      await rootsStore.put({ ...root, lastScanAt: Date.now(), itemCount: message.counters.mediaFound });
-    }
-    log.info("scanner", `scan ${message.type} for ${finished.rootName}`, message.counters);
-    this.finish();
+    try {
+      const root = await rootsStore.get(finished.rootId);
+      if (root && message.type !== "cancelled") await rootsStore.put({ ...root, lastScanAt: Date.now(), itemCount: message.counters.mediaFound });
+    } finally { this.finish(); }
   }
 
   private finish() {
@@ -166,9 +161,9 @@ class ScannerService {
     this.emit();
     log.info("scanner", `scan started for ${job.root.name}`, { mode: job.mode });
 
-    const worker = this.ensureWorker();
-    await new Promise<void>((resolve) => {
-      this.resolveCurrent = resolve;
+    this.resolveCurrent = job.resolve;
+    try {
+      const worker = this.ensureWorker();
       worker.postMessage({
         type: "start",
         rootId: job.root.id,
@@ -177,7 +172,10 @@ class ScannerService {
         mode: job.mode,
         deepDetect: job.deepDetect,
       });
-    });
+    } catch (error) {
+      this.current = { ...this.current, state: "error", error: String(error) };
+      this.emit(); this.finish();
+    }
   }
 }
 

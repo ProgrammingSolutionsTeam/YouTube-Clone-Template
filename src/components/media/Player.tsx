@@ -111,6 +111,9 @@ export function Player({
   const [subtitleId, setSubtitleId] = useState<string>("off");
   const [subtitleUrl, setSubtitleUrl] = useState<string | null>(null);
   const [qualityId, setQualityId] = useState<string>("original");
+  const [fallbackStep, setFallbackStep] = useState(0);
+  const failedItem = useRef(item.id);
+  if (failedItem.current !== item.id) { failedItem.current = item.id; setFallbackStep(0); }
 
   const [playing, setPlaying] = useState(false);
   const [waiting, setWaiting] = useState(false);
@@ -133,6 +136,7 @@ export function Player({
 
   /* ---------------------------------------------------------------- source */
   useEffect(() => {
+    const controller = new AbortController();
     let release: (() => void) | null = null;
     let alive = true;
     setSource(null);
@@ -146,7 +150,7 @@ export function Player({
       const opened = await openPlayback(item, qualityId === "original" ? undefined : qualityId);
       if (!alive) return opened.release();
 
-      if (opened.directPlay) {
+      if (opened.directPlay && fallbackStep === 0) {
         release = opened.release;
         setSource({ url: opened.url, mimeType: opened.mimeType, native: true });
         return;
@@ -160,7 +164,9 @@ export function Player({
         kind: isAudio ? "audio" : "video",
         duration: item.duration,
         startAt: settings.player.rememberPosition && stored ? Number(stored) : 0,
-        onStatus: (next) => alive && setStatus(next.stage === "ready" ? null : next),
+        onStatus: (next) => { if (alive) { setStatus(next.stage === "ready" ? null : next); if (next.stage === "error") setError(next.message ?? "conversion_failed"); } },
+        signal: controller.signal,
+        forceTranscode: fallbackStep >= 2,
         getPlayhead: () => mediaRef.current?.currentTime ?? 0,
       });
       if (!alive) return session.destroy();
@@ -172,6 +178,7 @@ export function Player({
 
     return () => {
       alive = false;
+      controller.abort();
       const media = mediaRef.current;
       if (media) {
         media.pause();
@@ -182,7 +189,7 @@ export function Player({
       release?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item, qualityId]);
+  }, [item, qualityId, fallbackStep]);
 
   useEffect(
     () => () => {
@@ -579,6 +586,7 @@ export function Player({
                 playsInline
                 preload="auto"
                 onLoadedMetadata={onLoaded}
+                onError={() => { if (fallbackStep < 2) setFallbackStep(step => step + 1); else setError("decode_unsupported"); }}
                 onTimeUpdate={onTimeUpdate}
                 onProgress={onTimeUpdate}
                 onDurationChange={onLoaded}
@@ -977,8 +985,11 @@ function IconButton({
 /** Re-opens the raw File for the converter without exposing any real path. */
 async function fetchFileFor(item: MediaItem, qualityId: string): Promise<File> {
   const opened = await openPlayback(item, qualityId === "original" ? undefined : qualityId);
-  const response = await fetch(opened.url);
-  const blob = await response.blob();
-  opened.release();
-  return new File([blob], opened.fileName, { type: opened.mimeType });
+  try {
+    if (opened.size > 512 * 1024 * 1024) throw new Error("conversion_size_limit_512mb");
+    const response = await fetch(opened.url);
+    if (!response.ok) throw new Error("unreadable");
+    const blob = await response.blob();
+    return new File([blob], opened.fileName, { type: opened.mimeType });
+  } finally { opened.release(); }
 }
